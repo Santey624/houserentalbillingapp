@@ -1,7 +1,29 @@
-import { Document, Page, View, Text } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Font } from "@react-pdf/renderer";
 import { InvoiceData } from "@/lib/invoiceTypes";
 import { styles, COLORS } from "./pdfStyles";
 
+// ── Font registration ──────────────────────────────────────────────────────
+Font.register({
+  family: "Playfair Display",
+  fonts: [
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2" },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2", fontWeight: 700 },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-400-italic.woff2", fontStyle: "italic" },
+  ],
+});
+
+Font.register({
+  family: "DM Sans",
+  fonts: [
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans/files/dm-sans-latin-400-normal.woff2" },
+    { src: "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans/files/dm-sans-latin-700-normal.woff2", fontWeight: 700 },
+  ],
+});
+
+// Prevent unwanted mid-word hyphenation in the invoice
+Font.registerHyphenationCallback((word) => [word]);
+
+// ── Helpers ───────────────────────────────────────────────────────────────
 interface Props {
   data: InvoiceData;
 }
@@ -10,6 +32,26 @@ function formatRs(amount: number) {
   return `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+function formatNum(n: number) {
+  return n.toLocaleString("en-IN");
+}
+
+// Newari lattice decorative band — used once, between header and billing period
+function DecorativeBand() {
+  const segments = [3, 0.6, 1.5, 0.6, 3, 0.6, 1.5, 0.6, 3, 0.6, 1.5, 0.6, 3];
+  return (
+    <View style={{ flexDirection: "row", height: 5 }}>
+      {segments.map((flex, i) => (
+        <View
+          key={i}
+          style={{ flex, backgroundColor: i % 2 === 0 ? COLORS.CRIMSON_DARK : COLORS.SAFFRON }}
+        />
+      ))}
+    </View>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
 export default function InvoicePDF({ data }: Props) {
   const { landlord, invoice, invoiceNum, nepaliMonth, meters, totalUnits, totalElec, additionalCosts, grandTotal } = data;
 
@@ -25,7 +67,8 @@ export default function InvoicePDF({ data }: Props) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
-        {/* 1. Header Banner */}
+
+        {/* 1. Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.headerLandlordName}>{landlord.name}</Text>
@@ -41,14 +84,18 @@ export default function InvoicePDF({ data }: Props) {
           </View>
         </View>
 
-        {/* 2. Billing Period Strip */}
-        <View style={styles.billingStrip}>
-          <Text style={styles.billingStripText}>
-            BILLING PERIOD: {nepaliMonth} {invoice.nepaliYear}
+        {/* Newari lattice motif — used once */}
+        <DecorativeBand />
+
+        {/* 2. Billing Period — typographic celebration */}
+        <View style={styles.billingPeriodContainer}>
+          <Text style={styles.billingPeriodLabel}>BILLING PERIOD</Text>
+          <Text style={styles.billingPeriodValue}>
+            {nepaliMonth} {invoice.nepaliYear}
           </Text>
         </View>
 
-        {/* 3. FROM / BILL TO Cards */}
+        {/* 3. FROM / BILL TO */}
         <View style={styles.partyRow}>
           <View style={[styles.partyCard, styles.partyCardFrom]}>
             <Text style={[styles.partyLabel, styles.partyLabelFrom]}>FROM</Text>
@@ -67,9 +114,9 @@ export default function InvoicePDF({ data }: Props) {
         {/* 4. Items Table */}
         <View style={styles.tableContainer}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.col1]}>Description</Text>
-            <Text style={[styles.tableHeaderText, styles.col2]}>Units</Text>
-            <Text style={[styles.tableHeaderText, styles.col3]}>Amount</Text>
+            <Text style={[styles.tableHeaderText, styles.col1]}>DESCRIPTION</Text>
+            <Text style={[styles.tableHeaderText, styles.col2]}>UNITS</Text>
+            <Text style={[styles.tableHeaderText, styles.col3]}>AMOUNT</Text>
           </View>
 
           {lineItems.map((item, i) => (
@@ -80,22 +127,20 @@ export default function InvoicePDF({ data }: Props) {
                   item.isElec ? styles.tableRowElec : i % 2 === 1 ? styles.tableRowAlt : {},
                 ]}
               >
-                <Text style={[styles.col1]}>{item.label}</Text>
-                <Text style={[styles.col2]}>
-                  {item.isElec ? `${totalUnits} units` : ""}
+                <Text style={styles.col1}>{item.label}</Text>
+                <Text style={styles.col2}>
+                  {item.isElec ? `${formatNum(totalUnits)} units` : ""}
                 </Text>
-                <Text style={[styles.col3]}>{formatRs(item.amount)}</Text>
+                <Text style={styles.col3}>{formatRs(item.amount)}</Text>
               </View>
 
-              {/* Meter sub-rows */}
+              {/* Meter sub-rows — subdued caption, no duplicate numbers */}
               {item.isElec &&
                 meters.map((meter, j) => (
                   <View key={j} style={styles.subRow}>
-                    <Text style={[styles.subText, styles.col1]}>
-                      {meter.name}: {meter.prev} → {meter.curr} ({meter.consumed} units @ Rs.{landlord.electricityRate}/unit)
+                    <Text style={styles.subText}>
+                      {meter.name}: {formatNum(meter.prev)} → {formatNum(meter.curr)} · {formatNum(meter.consumed)} units × Rs.{landlord.electricityRate} = {formatRs(meter.cost)}
                     </Text>
-                    <Text style={[styles.subText, styles.col2]}>{meter.consumed}</Text>
-                    <Text style={[styles.subText, styles.col3]}>{formatRs(meter.cost)}</Text>
                   </View>
                 ))}
             </View>
@@ -110,11 +155,11 @@ export default function InvoicePDF({ data }: Props) {
           <Text style={styles.grandTotalAmount}>{formatRs(grandTotal)}</Text>
         </View>
 
-        {/* 5. Payment Notes */}
+        {/* 5. Payment Information */}
         <View style={styles.notesContainer}>
           <View style={styles.notesAccent} />
           <View style={styles.notesContent}>
-            <Text style={styles.notesTitle}>Payment Information</Text>
+            <Text style={styles.notesTitle}>PAYMENT INFORMATION</Text>
             <Text style={styles.notesText}>
               • Payment is due by the {landlord.paymentDueDay}
               {landlord.paymentDueDay === 1
@@ -140,7 +185,7 @@ export default function InvoicePDF({ data }: Props) {
           <View style={styles.landlordNotesContainer}>
             <View style={styles.landlordNotesAccent} />
             <View style={styles.landlordNotesContent}>
-              <Text style={styles.landlordNotesTitle}>Notes from Landlord</Text>
+              <Text style={styles.landlordNotesTitle}>NOTES FROM LANDLORD</Text>
               {data.notes.map((note, i) => (
                 <Text key={i} style={styles.landlordNoteItem}>• {note}</Text>
               ))}
@@ -163,9 +208,10 @@ export default function InvoicePDF({ data }: Props) {
         {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            Generated by AKS Rental Invoice System • {invoiceNum} • {invoice.invoiceDate}
+            Generated by AKS Rental Invoice System · {invoiceNum} · {invoice.invoiceDate}
           </Text>
         </View>
+
       </Page>
     </Document>
   );

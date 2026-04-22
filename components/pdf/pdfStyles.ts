@@ -1,277 +1,258 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
 export const COLORS = {
-  NAVY: "#0f3460",
-  BLUE: "#2980b9",
-  SLATE: "#2c3e50",
-  LBLUE: "#d6eaf8",
-  ALTROW: "#f5f8fa",
-  DTXT: "#1c2833",
-  MTXT: "#646e78",
-  WHITE: "#ffffff",
-  SUBTOTAL: "#edf3fa",
-  TOTAL_BG: "#1a3a5c",
-  FOOTER_BG: "#2c3e50",
+  CRIMSON:      "#8b1a1a",   // primary — Nepali flag red
+  CRIMSON_DARK: "#6b1414",
+  SAFFRON:      "#c8973a",   // accent — used ≤ 3 times
+  CREAM:        "#faf8f4",   // warm paper background
+  WARM_WHITE:   "#f3ede3",   // card / alt-row fill
+  INK:          "#1c1208",   // primary text
+  MUTED:        "#6b5c45",   // secondary text
+  BORDER:       "#d4c4a8",   // hairline rules
+  WHITE:        "#ffffff",
 };
 
 export const styles = StyleSheet.create({
+  // ── Page ──────────────────────────────────────────────────────────────────
   page: {
-    fontFamily: "Helvetica",
+    fontFamily: "DM Sans",
     fontSize: 9,
-    color: COLORS.DTXT,
-    paddingBottom: 40,
+    color: COLORS.INK,
+    backgroundColor: COLORS.CREAM,
+    paddingBottom: 46,
   },
-  // Header
+
+  // ── Header ────────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: COLORS.NAVY,
-    padding: "12 14",
+    backgroundColor: COLORS.CRIMSON,
+    padding: "13 16",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  headerLeft: {
-    color: COLORS.WHITE,
-    gap: 2,
-  },
+  headerLeft: { flex: 1, gap: 3 },
   headerLandlordName: {
-    fontSize: 16,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 20,
+    fontFamily: "Playfair Display",
+    fontWeight: 700,
     color: COLORS.WHITE,
+    letterSpacing: 0.4,
   },
-  headerAddress: {
-    fontSize: 8,
-    color: "#a8c4e0",
-  },
-  headerRight: {
-    alignItems: "flex-end",
-    gap: 2,
-  },
+  headerAddress: { fontSize: 8, color: "#e8c4c4" },
+  headerRight: { alignItems: "flex-end", gap: 3 },
   headerTitle: {
-    fontSize: 18,
-    fontFamily: "Helvetica-Bold",
-    color: COLORS.WHITE,
-    letterSpacing: 1,
+    fontSize: 9,
+    fontFamily: "DM Sans",
+    fontWeight: 700,
+    color: COLORS.SAFFRON,
+    letterSpacing: 2.5,
   },
-  headerInvoiceNum: {
-    fontSize: 8,
-    color: "#a8c4e0",
+  headerInvoiceNum: { fontSize: 7.5, color: "#e8c4c4" },
+  headerDate:       { fontSize: 7.5, color: "#e8c4c4" },
+
+  // ── Billing period — typographic celebration ───────────────────────────────
+  billingPeriodContainer: {
+    padding: "10 16 9",
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
+    backgroundColor: COLORS.CREAM,
   },
-  headerDate: {
-    fontSize: 8,
-    color: "#a8c4e0",
+  billingPeriodLabel: {
+    fontSize: 6.5,
+    color: COLORS.MUTED,
+    letterSpacing: 2.5,
+    marginBottom: 3,
   },
-  // Billing strip
-  billingStrip: {
-    backgroundColor: COLORS.BLUE,
-    padding: "6 14",
-    alignItems: "center",
+  billingPeriodValue: {
+    fontSize: 22,
+    fontFamily: "Playfair Display",
+    fontStyle: "italic",
+    color: COLORS.CRIMSON,
   },
-  billingStripText: {
-    fontSize: 11,
-    fontFamily: "Helvetica-Bold",
-    color: COLORS.WHITE,
-    letterSpacing: 0.5,
-  },
-  // Party cards
+
+  // ── Party cards ───────────────────────────────────────────────────────────
   partyRow: {
     flexDirection: "row",
     gap: 10,
-    padding: "10 14 8",
+    padding: "10 16 8",
   },
   partyCard: {
     flex: 1,
     padding: "8 10",
-    borderRadius: 4,
+    borderRadius: 2,
   },
   partyCardFrom: {
-    backgroundColor: COLORS.LBLUE,
+    backgroundColor: COLORS.WARM_WHITE,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.BORDER,
   },
   partyCardTo: {
-    backgroundColor: COLORS.NAVY,
+    backgroundColor: COLORS.CRIMSON,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.SAFFRON,
   },
   partyLabel: {
-    fontSize: 7,
-    fontFamily: "Helvetica-Bold",
-    letterSpacing: 1,
+    fontSize: 6.5,
+    fontWeight: 700,
+    letterSpacing: 2,
     marginBottom: 4,
   },
-  partyLabelFrom: {
-    color: COLORS.BLUE,
-  },
-  partyLabelTo: {
-    color: "#a8c4e0",
-  },
+  partyLabelFrom: { color: COLORS.MUTED },
+  partyLabelTo:   { color: "#e8c4c4" },
   partyName: {
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 11,
+    fontFamily: "Playfair Display",
+    fontWeight: 700,
     marginBottom: 2,
   },
-  partyNameFrom: {
-    color: COLORS.SLATE,
-  },
-  partyNameTo: {
-    color: COLORS.WHITE,
-  },
-  partyDetail: {
-    fontSize: 8,
-  },
-  partyDetailFrom: {
-    color: COLORS.MTXT,
-  },
-  partyDetailTo: {
-    color: "#a8c4e0",
-  },
-  // Items table
-  tableContainer: {
-    padding: "0 14 10",
-  },
+  partyNameFrom: { color: COLORS.INK },
+  partyNameTo:   { color: COLORS.WHITE },
+  partyDetail:      { fontSize: 8 },
+  partyDetailFrom:  { color: COLORS.MUTED },
+  partyDetailTo:    { color: "#e8c4c4" },
+
+  // ── Items table ───────────────────────────────────────────────────────────
+  tableContainer: { padding: "0 16 8" },
   tableHeader: {
-    backgroundColor: COLORS.SLATE,
     flexDirection: "row",
     padding: "5 8",
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.CRIMSON,
+    backgroundColor: COLORS.WARM_WHITE,
   },
   tableHeaderText: {
-    color: COLORS.WHITE,
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
+    fontSize: 7,
+    fontWeight: 700,
+    color: COLORS.INK,
+    letterSpacing: 1,
   },
   tableRow: {
     flexDirection: "row",
     padding: "5 8",
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
   },
-  tableRowAlt: {
-    backgroundColor: COLORS.ALTROW,
-  },
-  tableRowElec: {
-    backgroundColor: COLORS.LBLUE,
-  },
+  tableRowAlt:  { backgroundColor: COLORS.WARM_WHITE },
+  tableRowElec: { backgroundColor: "#f5e6e6" },
   col1: { flex: 3 },
   col2: { flex: 1, textAlign: "right" },
   col3: { flex: 1, textAlign: "right" },
-  // Sub-row (meter detail)
+
+  // ── Meter sub-row — subdued caption, no duplicated columns ────────────────
   subRow: {
-    flexDirection: "row",
-    padding: "3 8 3 20",
-    backgroundColor: COLORS.SUBTOTAL,
+    padding: "3 8 3 18",
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
+    backgroundColor: "#fdf0f0",
   },
   subText: {
-    fontSize: 8,
-    color: COLORS.MTXT,
+    fontSize: 7.5,
+    color: COLORS.MUTED,
+    fontStyle: "italic",
   },
-  // Divider
+
+  // ── Divider ───────────────────────────────────────────────────────────────
   divider: {
     height: 1,
-    backgroundColor: COLORS.BLUE,
-    margin: "2 14",
+    backgroundColor: COLORS.BORDER,
+    margin: "0 16",
   },
-  // Grand total row
+
+  // ── Grand total ───────────────────────────────────────────────────────────
   grandTotalRow: {
     flexDirection: "row",
-    padding: "7 8",
-    backgroundColor: COLORS.TOTAL_BG,
-    margin: "0 14",
+    padding: "8 8",
+    backgroundColor: COLORS.CRIMSON,
+    margin: "0 16",
     borderRadius: 2,
   },
   grandTotalLabel: {
     flex: 3,
     color: COLORS.WHITE,
     fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Playfair Display",
+    fontWeight: 700,
+    letterSpacing: 0.5,
   },
   grandTotalAmount: {
     flex: 2,
-    color: COLORS.WHITE,
-    fontSize: 10,
-    fontFamily: "Helvetica-Bold",
+    color: COLORS.SAFFRON,
+    fontSize: 11,
+    fontFamily: "Playfair Display",
+    fontWeight: 700,
     textAlign: "right",
   },
-  // Payment notes
+
+  // ── Payment information ───────────────────────────────────────────────────
   notesContainer: {
-    margin: "10 14 0",
-    backgroundColor: COLORS.LBLUE,
-    borderRadius: 4,
+    margin: "10 16 0",
+    backgroundColor: COLORS.WARM_WHITE,
+    borderRadius: 2,
     flexDirection: "row",
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
   },
-  notesAccent: {
-    width: 4,
-    backgroundColor: COLORS.BLUE,
-  },
-  notesContent: {
-    padding: "8 10",
-    flex: 1,
-    gap: 3,
-  },
+  notesAccent:  { width: 3, backgroundColor: COLORS.MUTED },
+  notesContent: { padding: "7 10", flex: 1, gap: 3 },
   notesTitle: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: COLORS.SLATE,
+    fontSize: 7,
+    fontWeight: 700,
+    color: COLORS.INK,
+    letterSpacing: 1,
     marginBottom: 2,
   },
-  notesText: {
-    fontSize: 8,
-    color: COLORS.MTXT,
-  },
-  // Landlord notes
+  notesText: { fontSize: 7.5, color: COLORS.MUTED },
+
+  // ── Landlord notes ────────────────────────────────────────────────────────
   landlordNotesContainer: {
-    margin: "8 14 0",
-    backgroundColor: "#fef9e7",
-    borderRadius: 4,
+    margin: "8 16 0",
+    backgroundColor: "#fef9ed",
+    borderRadius: 2,
     flexDirection: "row",
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "#e8c97a",
   },
-  landlordNotesAccent: {
-    width: 4,
-    backgroundColor: "#f39c12",
-  },
-  landlordNotesContent: {
-    padding: "8 10",
-    flex: 1,
-    gap: 3,
-  },
+  landlordNotesAccent:  { width: 3, backgroundColor: COLORS.SAFFRON },
+  landlordNotesContent: { padding: "7 10", flex: 1, gap: 3 },
   landlordNotesTitle: {
-    fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: COLORS.SLATE,
+    fontSize: 7,
+    fontWeight: 700,
+    color: COLORS.INK,
+    letterSpacing: 1,
     marginBottom: 2,
   },
-  landlordNoteItem: {
-    fontSize: 8,
-    color: COLORS.MTXT,
-  },
-  // Signatures
+  landlordNoteItem: { fontSize: 7.5, color: COLORS.MUTED },
+
+  // ── Signatures ────────────────────────────────────────────────────────────
   signaturesRow: {
     flexDirection: "row",
-    margin: "16 14 0",
+    margin: "18 16 0",
     gap: 20,
   },
-  sigBlock: {
-    flex: 1,
-    alignItems: "center",
-  },
+  sigBlock: { flex: 1, alignItems: "center" },
   sigLine: {
     borderTopWidth: 1,
-    borderTopColor: COLORS.SLATE,
+    borderTopColor: COLORS.BORDER,
     width: "100%",
     marginBottom: 4,
   },
-  sigLabel: {
-    fontSize: 8,
-    color: COLORS.MTXT,
-  },
-  // Footer
+  sigLabel: { fontSize: 7, color: COLORS.MUTED, letterSpacing: 0.5 },
+
+  // ── Footer ────────────────────────────────────────────────────────────────
   footer: {
-    backgroundColor: COLORS.FOOTER_BG,
-    padding: "6 14",
+    backgroundColor: COLORS.INK,
+    padding: "6 16",
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
   },
   footerText: {
-    fontSize: 7,
-    color: "#a0aab4",
+    fontSize: 6.5,
+    color: "#8a7560",
     textAlign: "center",
-    fontFamily: "Helvetica-Oblique",
+    fontStyle: "italic",
   },
 });
