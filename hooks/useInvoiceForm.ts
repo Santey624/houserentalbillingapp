@@ -158,6 +158,7 @@ export function useInvoiceForm() {
       totalElec,
       additionalCosts,
       grandTotal,
+      notes: notes.filter((n) => n.trim() !== ""),
     };
   }
 

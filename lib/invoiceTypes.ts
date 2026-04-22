@@ -51,6 +51,7 @@ export interface InvoiceData {
   totalElec: number;
   additionalCosts: AdditionalCost[];
   grandTotal: number;
+  notes: string[];
 }
 
 export interface ValidationErrors {

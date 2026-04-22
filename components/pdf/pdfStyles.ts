@@ -212,6 +212,33 @@ export const styles = StyleSheet.create({
     fontSize: 8,
     color: COLORS.MTXT,
   },
+  // Landlord notes
+  landlordNotesContainer: {
+    margin: "8 14 0",
+    backgroundColor: "#fef9e7",
+    borderRadius: 4,
+    flexDirection: "row",
+    overflow: "hidden",
+  },
+  landlordNotesAccent: {
+    width: 4,
+    backgroundColor: "#f39c12",
+  },
+  landlordNotesContent: {
+    padding: "8 10",
+    flex: 1,
+    gap: 3,
+  },
+  landlordNotesTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: COLORS.SLATE,
+    marginBottom: 2,
+  },
+  landlordNoteItem: {
+    fontSize: 8,
+    color: COLORS.MTXT,
+  },
   // Signatures
   signaturesRow: {
     flexDirection: "row",

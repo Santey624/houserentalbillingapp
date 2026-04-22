@@ -135,7 +135,20 @@ export default function InvoicePDF({ data }: Props) {
           </View>
         </View>
 
-        {/* 6. Signatures */}
+        {/* 6. Landlord Notes */}
+        {data.notes.length > 0 && (
+          <View style={styles.landlordNotesContainer}>
+            <View style={styles.landlordNotesAccent} />
+            <View style={styles.landlordNotesContent}>
+              <Text style={styles.landlordNotesTitle}>Notes from Landlord</Text>
+              {data.notes.map((note, i) => (
+                <Text key={i} style={styles.landlordNoteItem}>• {note}</Text>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* 7. Signatures */}
         <View style={styles.signaturesRow}>
           <View style={styles.sigBlock}>
             <View style={styles.sigLine} />
