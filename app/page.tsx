@@ -5,6 +5,7 @@ import LandlordSection from "@/components/form/LandlordSection";
 import InvoiceDetailsSection from "@/components/form/InvoiceDetailsSection";
 import ElectricitySection from "@/components/form/ElectricitySection";
 import AdditionalCostsSection from "@/components/form/AdditionalCostsSection";
+import NotesSection from "@/components/form/NotesSection";
 import { useInvoiceForm } from "@/hooks/useInvoiceForm";
 
 // Load GenerateButton (which uses @react-pdf/renderer) client-side only
@@ -57,6 +58,12 @@ export default function Home() {
           onAdd={form.addCost}
           onRemove={form.removeCost}
           onUpdate={form.updateCost}
+        />
+        <NotesSection
+          notes={form.notes}
+          onAdd={form.addNote}
+          onRemove={form.removeNote}
+          onUpdate={form.updateNote}
         />
 
         <GenerateButton onBeforeGenerate={handleGenerate} />

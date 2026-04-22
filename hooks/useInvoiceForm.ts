@@ -28,6 +28,7 @@ export function useInvoiceForm() {
   const [invoice, setInvoice] = useState<InvoiceDetails>(DEFAULT_INVOICE);
   const [meters, setMeters] = useState<MeterRow[]>(DEFAULT_METERS);
   const [costs, setCosts] = useState<CostRow[]>(DEFAULT_COSTS);
+  const [notes, setNotes] = useState<string[]>([]);
   const [status, setStatus] = useState<"idle" | "generating" | "error">("idle");
   const [errors, setErrors] = useState<ValidationErrors>({});
 
@@ -86,6 +87,18 @@ export function useInvoiceForm() {
     setCosts((prev) =>
       prev.map((c) => (c.id === id ? { ...c, [key]: value } : c))
     );
+  }
+
+  function addNote() {
+    setNotes((prev) => [...prev, ""]);
+  }
+
+  function removeNote(index: number) {
+    setNotes((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function updateNote(index: number, value: string) {
+    setNotes((prev) => prev.map((n, i) => (i === index ? value : n)));
   }
 
   function validate(): boolean {
@@ -153,6 +166,7 @@ export function useInvoiceForm() {
     invoice,
     meters,
     costs,
+    notes,
     status,
     errors,
     updateLandlord,
@@ -164,6 +178,9 @@ export function useInvoiceForm() {
     addCost,
     removeCost,
     updateCost,
+    addNote,
+    removeNote,
+    updateNote,
     validate,
     assembleInvoiceData,
     setStatus,
