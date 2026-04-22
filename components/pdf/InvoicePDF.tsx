@@ -6,17 +6,18 @@ import { styles, COLORS } from "./pdfStyles";
 Font.register({
   family: "Playfair Display",
   fonts: [
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-400-normal.woff2" },
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-700-normal.woff2", fontWeight: 700 },
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/playfair-display/files/playfair-display-latin-400-italic.woff2", fontStyle: "italic" },
+    { src: "/fonts/playfair-display-latin-400-normal.woff" },
+    { src: "/fonts/playfair-display-latin-700-normal.woff", fontWeight: 700 },
+    { src: "/fonts/playfair-display-latin-400-italic.woff", fontStyle: "italic" },
   ],
 });
 
 Font.register({
   family: "DM Sans",
   fonts: [
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans/files/dm-sans-latin-400-normal.woff2" },
-    { src: "https://cdn.jsdelivr.net/npm/@fontsource/dm-sans/files/dm-sans-latin-700-normal.woff2", fontWeight: 700 },
+    { src: "/fonts/dm-sans-latin-400-normal.woff" },
+    { src: "/fonts/dm-sans-latin-700-normal.woff", fontWeight: 700 },
+    { src: "/fonts/dm-sans-latin-400-normal.woff", fontStyle: "italic" },
   ],
 });
 
