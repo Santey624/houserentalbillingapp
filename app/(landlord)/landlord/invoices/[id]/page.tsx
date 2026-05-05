@@ -73,7 +73,7 @@ export default async function LandlordInvoiceDetailPage(props: {
             </tr>
           </thead>
           <tbody>
-            {invoice.lineItems.map((li) => (
+            {invoice.lineItems.map((li: any) => (
               <tr key={li.id} className="border-b border-gray-50">
                 <td className="py-2 text-gray-700">
                   {li.description}
