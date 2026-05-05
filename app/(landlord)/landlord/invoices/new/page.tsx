@@ -50,7 +50,7 @@ export default async function NewInvoicePage(props: {
             <p className="text-gray-400 text-sm">No active tenants. Approve a join request first.</p>
           ) : (
             <div className="space-y-2">
-              {tenancies.map((t) => (
+              {tenancies.map((t: any) => (
                 <Link
                   key={t.id}
                   href={`/landlord/invoices/new?tenancyId=${t.id}&unitId=${t.unitId}`}
