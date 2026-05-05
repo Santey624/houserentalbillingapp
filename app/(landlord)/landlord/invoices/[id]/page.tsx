@@ -26,7 +26,7 @@ export default async function LandlordInvoiceDetailPage(props: {
   })
   if (!invoice) notFound()
 
-  const pendingPayment = invoice.payments.find((p) => p.status === 'PENDING_VERIFICATION')
+  const pendingPayment = invoice.payments.find((p: any) => p.status === 'PENDING_VERIFICATION')
 
   return (
     <div className="p-8 max-w-3xl">
@@ -131,7 +131,7 @@ export default async function LandlordInvoiceDetailPage(props: {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Payment History</h3>
           <div className="space-y-3">
-            {invoice.payments.map((p) => (
+            {invoice.payments.map((p: any) => (
               <div key={p.id} className="flex items-center justify-between text-sm">
                 <div>
                   <span className="text-gray-700">{p.method.replace('_', ' ')}</span>
