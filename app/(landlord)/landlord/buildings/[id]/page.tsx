@@ -72,7 +72,7 @@ export default async function BuildingDetailPage(props: {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {building.units.map((unit) => {
+          {building.units.map((unit: any) => {
             const activeTenancy = unit.tenancies[0]
             return (
               <Link
