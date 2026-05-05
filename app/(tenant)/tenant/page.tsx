@@ -45,7 +45,7 @@ export default async function TenantDashboard() {
           <p className="text-blue-800 text-sm font-medium mb-1">
             Pending Join Request
           </p>
-          {tenant.joinRequests.map((jr) => (
+          {tenant.joinRequests.map((jr: (typeof tenant.joinRequests)[number]) => (
             <p key={jr.id} className="text-blue-600 text-sm">
               Waiting for approval from <strong>{jr.building.name}</strong>
             </p>
@@ -105,7 +105,7 @@ export default async function TenantDashboard() {
               <div className="px-6 py-10 text-center text-gray-400 text-sm">No invoices yet.</div>
             ) : (
               <div className="divide-y divide-gray-50">
-                {activeTenancy.invoices.map((inv) => (
+                {activeTenancy.invoices.map((inv: (typeof activeTenancy.invoices)[number]) => (
                   <Link
                     key={inv.id}
                     href={`/tenant/invoices/${inv.id}`}

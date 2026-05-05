@@ -27,7 +27,7 @@ export default async function TenantInvoicesPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
-          {invoices.map((inv) => (
+          {invoices.map((inv: (typeof invoices)[number]) => (
             <Link
               key={inv.id}
               href={`/tenant/invoices/${inv.id}`}

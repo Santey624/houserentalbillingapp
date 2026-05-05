@@ -14,7 +14,7 @@ export default async function NotificationsPage() {
     take: 50,
   })
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadCount = notifications.filter((n: (typeof notifications)[number]) => !n.isRead).length
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">

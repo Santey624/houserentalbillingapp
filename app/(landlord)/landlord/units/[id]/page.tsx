@@ -30,7 +30,7 @@ export default async function UnitDetailPage(props: {
   })
   if (!unit) notFound()
 
-  const activeTenancy = unit.tenancies.find((t) => t.status === 'ACTIVE')
+  const activeTenancy = unit.tenancies.find((t: (typeof unit.tenancies)[number]) => t.status === 'ACTIVE')
 
   return (
     <div className="p-8">
@@ -75,7 +75,7 @@ export default async function UnitDetailPage(props: {
           <div className="px-6 py-10 text-center text-gray-400 text-sm">No invoices for this unit.</div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {unit.invoices.map((inv) => (
+            {unit.invoices.map((inv: (typeof unit.invoices)[number]) => (
               <Link
                 key={inv.id}
                 href={`/landlord/invoices/${inv.id}`}

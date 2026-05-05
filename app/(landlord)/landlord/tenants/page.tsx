@@ -37,7 +37,7 @@ export default async function TenantsPage() {
         </div>
       ) : (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
-          {tenancies.map((t) => (
+          {tenancies.map((t: (typeof tenancies)[number]) => (
             <div key={t.id} className="flex items-center justify-between px-6 py-4">
               <div>
                 <div className="font-medium text-gray-900">{t.tenant.displayName}</div>

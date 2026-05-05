@@ -46,9 +46,9 @@ export default async function LandlordDashboard() {
     }),
   ])
 
-  const totalUnits = landlord.buildings.reduce((s, b) => s + b.units.length, 0)
+  const totalUnits = landlord.buildings.reduce((s: number, b: (typeof landlord.buildings)[number]) => s + b.units.length, 0)
   const occupiedUnits = landlord.buildings.reduce(
-    (s, b) => s + b.units.filter((u) => u.tenancies.length > 0).length,
+    (s: number, b: (typeof landlord.buildings)[number]) => s + b.units.filter((u: (typeof b.units)[number]) => u.tenancies.length > 0).length,
     0
   )
 
@@ -116,7 +116,7 @@ export default async function LandlordDashboard() {
           <div className="px-6 py-10 text-center text-gray-400 text-sm">No invoices yet.</div>
         ) : (
           <div className="divide-y divide-gray-50">
-            {recentInvoices.map((inv) => (
+            {recentInvoices.map((inv: (typeof recentInvoices)[number]) => (
               <Link
                 key={inv.id}
                 href={`/landlord/invoices/${inv.id}`}

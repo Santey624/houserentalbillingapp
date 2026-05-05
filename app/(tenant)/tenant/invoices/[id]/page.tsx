@@ -61,8 +61,8 @@ export default async function TenantInvoiceDetailPage(props: {
     invoiceNum: invoice.invoiceNumber,
     nepaliMonth: invoice.nepaliMonth,
     meters: invoice.lineItems
-      .filter((li) => li.meterReading)
-      .map((li) => ({
+      .filter((li: (typeof invoice.lineItems)[number]) => li.meterReading)
+      .map((li: (typeof invoice.lineItems)[number]) => ({
         name: li.meterReading!.meterName,
         prev: li.meterReading!.prevReading,
         curr: li.meterReading!.currReading,
@@ -70,14 +70,14 @@ export default async function TenantInvoiceDetailPage(props: {
         cost: li.amount,
       })),
     totalUnits: invoice.lineItems
-      .filter((li) => li.meterReading)
-      .reduce((s, li) => s + (li.meterReading?.consumed ?? 0), 0),
+      .filter((li: (typeof invoice.lineItems)[number]) => li.meterReading)
+      .reduce((s: number, li: (typeof invoice.lineItems)[number]) => s + (li.meterReading?.consumed ?? 0), 0),
     totalElec: invoice.totalElec,
     additionalCosts: invoice.lineItems
-      .filter((li) => !li.meterReading && li.description !== 'House Rent' && li.description !== 'Service / Minimum Charge')
-      .map((li) => ({ desc: li.description, amount: li.amount })),
+      .filter((li: (typeof invoice.lineItems)[number]) => !li.meterReading && li.description !== 'House Rent' && li.description !== 'Service / Minimum Charge')
+      .map((li: (typeof invoice.lineItems)[number]) => ({ desc: li.description, amount: li.amount })),
     // Convert optional string notes (from DB) into string[] for InvoiceData
-    notes: invoice.notes ? invoice.notes.split('\n').map((n) => n.trim()).filter((n) => n.length > 0) : [],
+    notes: invoice.notes ? invoice.notes.split('\n').map((n: string) => n.trim()).filter((n: string) => n.length > 0) : [],
     grandTotal: invoice.grandTotal,
   }
 
@@ -112,7 +112,7 @@ export default async function TenantInvoiceDetailPage(props: {
             </tr>
           </thead>
           <tbody>
-            {invoice.lineItems.map((li) => (
+            {invoice.lineItems.map((li: (typeof invoice.lineItems)[number]) => (
               <tr key={li.id} className="border-b border-gray-50">
                 <td className="py-2 text-gray-700">
                   {li.description}
@@ -168,7 +168,7 @@ export default async function TenantInvoiceDetailPage(props: {
       {invoice.payments.length > 0 && (
         <div className="mt-6 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="font-semibold text-gray-900 mb-3">Payment History</h3>
-          {invoice.payments.map((p) => (
+          {invoice.payments.map((p: (typeof invoice.payments)[number]) => (
             <div key={p.id} className="flex items-center justify-between text-sm py-2 border-b border-gray-50 last:border-0">
               <span className="text-gray-600">{p.method.replace('_', ' ')} · {new Date(p.createdAt).toLocaleDateString()}</span>
               <span className={`text-xs px-2 py-0.5 rounded-full ${

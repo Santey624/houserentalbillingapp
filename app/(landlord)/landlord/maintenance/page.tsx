@@ -27,8 +27,8 @@ export default async function LandlordMaintenancePage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  const open = requests.filter((r) => r.status === 'OPEN' || r.status === 'IN_PROGRESS')
-  const resolved = requests.filter((r) => r.status === 'RESOLVED' || r.status === 'CLOSED')
+  const open = requests.filter((r: (typeof requests)[number]) => r.status === 'OPEN' || r.status === 'IN_PROGRESS')
+  const resolved = requests.filter((r: (typeof requests)[number]) => r.status === 'RESOLVED' || r.status === 'CLOSED')
 
   return (
     <div className="p-8">
@@ -38,7 +38,7 @@ export default async function LandlordMaintenancePage() {
         <div className="mb-8">
           <h2 className="font-semibold text-gray-700 mb-4">Active ({open.length})</h2>
           <div className="space-y-4">
-            {open.map((req) => (
+            {open.map((req: (typeof open)[number]) => (
               <div key={req.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-start justify-between mb-2">
                   <div>
@@ -78,7 +78,7 @@ export default async function LandlordMaintenancePage() {
         <div>
           <h2 className="font-semibold text-gray-700 mb-4">Resolved</h2>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {resolved.map((req) => (
+            {resolved.map((req: (typeof resolved)[number]) => (
               <div key={req.id} className="flex items-center justify-between px-6 py-4">
                 <div>
                   <p className="font-medium text-sm text-gray-900">{req.title}</p>

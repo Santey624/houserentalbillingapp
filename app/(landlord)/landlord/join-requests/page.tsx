@@ -20,8 +20,8 @@ export default async function JoinRequestsPage() {
     orderBy: { createdAt: 'desc' },
   })
 
-  const pending = requests.filter((r) => r.status === 'PENDING')
-  const resolved = requests.filter((r) => r.status !== 'PENDING')
+  const pending = requests.filter((r: (typeof requests)[number]) => r.status === 'PENDING')
+  const resolved = requests.filter((r: (typeof requests)[number]) => r.status !== 'PENDING')
 
   return (
     <div className="p-8">
@@ -31,7 +31,7 @@ export default async function JoinRequestsPage() {
         <div className="mb-8">
           <h2 className="font-semibold text-gray-700 mb-4">Pending ({pending.length})</h2>
           <div className="space-y-4">
-            {pending.map((req) => (
+            {pending.map((req: (typeof pending)[number]) => (
               <div key={req.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -73,7 +73,7 @@ export default async function JoinRequestsPage() {
         <div>
           <h2 className="font-semibold text-gray-700 mb-4">Past Requests</h2>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 divide-y divide-gray-50">
-            {resolved.map((req) => (
+            {resolved.map((req: (typeof resolved)[number]) => (
               <div key={req.id} className="flex items-center justify-between px-6 py-4">
                 <div>
                   <p className="font-medium text-gray-900 text-sm">{req.tenant.displayName}</p>
