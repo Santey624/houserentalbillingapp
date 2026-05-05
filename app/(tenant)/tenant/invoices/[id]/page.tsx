@@ -76,6 +76,8 @@ export default async function TenantInvoiceDetailPage(props: {
     additionalCosts: invoice.lineItems
       .filter((li) => !li.meterReading && li.description !== 'House Rent' && li.description !== 'Service / Minimum Charge')
       .map((li) => ({ desc: li.description, amount: li.amount })),
+    // Convert optional string notes (from DB) into string[] for InvoiceData
+    notes: invoice.notes ? invoice.notes.split('\n').map((n) => n.trim()).filter((n) => n.length > 0) : [],
     grandTotal: invoice.grandTotal,
   }
 
