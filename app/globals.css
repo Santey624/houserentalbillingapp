@@ -1,26 +1,157 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdfbf7;
+  --foreground: #2d2d2d;
+  --muted: #e5e0d8;
+  --accent: #ff4d4d;
+  --accent-blue: #2d5da1;
+  --border-color: #2d2d2d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-dm-sans);
-  --font-serif: var(--font-playfair);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-blue: var(--accent-blue);
+  --font-sans: var(--font-patrick-hand);
+  --font-heading: var(--font-kalam);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base ────────────────────────────────────────────────────── */
+html {
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  /* Dot texture — uses a pseudo instead of body background-image
+     so it doesn't repaint with every layout change */
   color: var(--foreground);
-  font-family: var(--font-dm-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-patrick-hand), 'Patrick Hand', cursive;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dot pattern on the fixed pseudo so it never repaints */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+  background-size: 24px 24px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Ensure page content sits above the fixed dot layer */
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-kalam), 'Kalam', cursive;
+}
+
+/* ── Wobbly border-radius utilities ─────────────────────────── */
+/* Keeping values moderate — avoids expensive clip recalculation
+   on large elements while still looking hand-drawn */
+.wobbly {
+  border-radius: 22px 4px 18px 4px / 4px 18px 4px 22px;
+}
+.wobbly-md {
+  border-radius: 16px 4px 14px 4px / 4px 14px 4px 16px;
+}
+.wobbly-sm {
+  border-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+}
+.wobbly-pill {
+  border-radius: 20px 12px 16px 14px / 12px 18px 10px 16px;
+}
+
+/* ── Hard-offset shadows ─────────────────────────────────────── */
+.shadow-hard {
+  box-shadow: 4px 4px 0px 0px #2d2d2d;
+}
+.shadow-hard-sm {
+  box-shadow: 2px 2px 0px 0px #2d2d2d;
+}
+.shadow-hard-lg {
+  box-shadow: 6px 6px 0px 0px #2d2d2d;
+}
+.shadow-hard-accent {
+  box-shadow: 4px 4px 0px 0px #ff4d4d;
+}
+
+/* ── Sketch button ───────────────────────────────────────────── */
+/* will-change tells the browser to create a GPU layer upfront,
+   eliminating the compositor promotion cost during hover */
+.btn-sketch {
+  border-radius: 22px 4px 18px 4px / 4px 18px 4px 22px;
+  box-shadow: 4px 4px 0px 0px #2d2d2d;
+  will-change: transform, box-shadow;
+  transition: background-color 100ms ease, border-color 100ms ease,
+              box-shadow 80ms ease, transform 80ms ease;
+}
+.btn-sketch:hover:not(:disabled) {
+  box-shadow: 2px 2px 0px 0px #2d2d2d;
+  transform: translate(2px, 2px);
+}
+.btn-sketch:active:not(:disabled) {
+  box-shadow: none;
+  transform: translate(4px, 4px);
+}
+.btn-sketch:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Nav item ────────────────────────────────────────────────── */
+.nav-item-sketch {
+  border-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+  transition: background-color 100ms ease, border-color 100ms ease;
+}
+
+/* ── Sketch input ────────────────────────────────────────────── */
+.input-sketch {
+  border-radius: 12px 3px 10px 3px / 3px 10px 3px 12px;
+  border: 2px solid #2d2d2d;
+  background: #ffffff;
+  font-family: var(--font-patrick-hand), cursive;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.input-sketch:focus {
+  outline: none;
+  border-color: #2d5da1;
+  box-shadow: 0 0 0 3px rgba(45, 93, 161, 0.15);
+}
+
+/* ── Card sketch ─────────────────────────────────────────────── */
+/* contain:paint restricts the repaint region to the card bounds,
+   preventing adjacent elements from being repainted together */
+.card-sketch {
+  background: #ffffff;
+  border: 3px solid #2d2d2d;
+  border-radius: 16px 4px 14px 4px / 4px 14px 4px 16px;
+  box-shadow: 4px 4px 0px 0px #2d2d2d;
+  contain: paint;
+  will-change: transform, box-shadow;
+  transition: box-shadow 100ms ease, transform 100ms ease;
+}
+.card-sketch:hover {
+  box-shadow: 6px 6px 0px 0px #2d2d2d;
+}
+
+/* ── Animation ───────────────────────────────────────────────── */
+@keyframes bounce-gentle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+
+.animate-bounce-gentle {
+  animation: bounce-gentle 3s ease-in-out infinite;
+  will-change: transform;
 }

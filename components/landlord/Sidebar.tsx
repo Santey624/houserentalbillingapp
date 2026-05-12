@@ -1,15 +1,16 @@
 'use client'
 
 import { AppSidebar } from '@/components/shared/AppSidebar'
+import { LayoutDashboard, Building2, Users, Mail, FileText, Wrench, Settings } from 'lucide-react'
 
 const navItems = [
-  { href: '/landlord', label: 'Dashboard', icon: '🏠' },
-  { href: '/landlord/buildings', label: 'Buildings', icon: '🏢' },
-  { href: '/landlord/tenants', label: 'Tenants', icon: '👥' },
-  { href: '/landlord/join-requests', label: 'Join Requests', icon: '📬' },
-  { href: '/landlord/invoices', label: 'Invoices', icon: '🧾' },
-  { href: '/landlord/maintenance', label: 'Maintenance', icon: '🔧' },
-  { href: '/landlord/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/landlord', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/landlord/buildings', label: 'Buildings', icon: Building2 },
+  { href: '/landlord/tenants', label: 'Tenants', icon: Users },
+  { href: '/landlord/join-requests', label: 'Join Requests', icon: Mail },
+  { href: '/landlord/invoices', label: 'Invoices', icon: FileText },
+  { href: '/landlord/maintenance', label: 'Maintenance', icon: Wrench },
+  { href: '/landlord/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function LandlordSidebar() {
@@ -17,9 +18,6 @@ export default function LandlordSidebar() {
     <AppSidebar
       title="AKS Rental"
       subtitle="Landlord Portal"
-      subtitleColor="text-blue-300"
-      bgColor="bg-[#0f3460]"
-      mutedColor="text-blue-100"
       navItems={navItems}
       rootHref="/landlord"
     />

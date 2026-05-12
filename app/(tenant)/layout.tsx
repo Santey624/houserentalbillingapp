@@ -8,9 +8,9 @@ export default async function TenantLayout({ children }: { children: React.React
   if (session.user.role !== 'TENANT') redirect('/landlord')
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50 md:flex-row">
+    <div className="md:flex md:min-h-screen">
       <TenantSidebar />
-      <main className="min-w-0 flex-1 overflow-auto">{children}</main>
+      <main className="min-w-0 flex-1 overflow-x-hidden">{children}</main>
     </div>
   )
 }

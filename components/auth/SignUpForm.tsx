@@ -12,64 +12,70 @@ export default function SignUpForm({ defaultRole }: Props) {
   const [state, action, pending] = useActionState(signUpAction, null)
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <label className="block text-sm font-medium text-[#2d2d2d] mb-1.5">Full Name</label>
         <input
           name="name"
           type="text"
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm"
         />
-        {state?.errors?.name && <p className="text-red-600 text-xs mt-1">{state.errors.name[0]}</p>}
+        {state?.errors?.name && (
+          <p className="text-[#ff4d4d] text-xs mt-1.5">{state.errors.name[0]}</p>
+        )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-[#2d2d2d] mb-1.5">Email</label>
         <input
           name="email"
           type="email"
           required
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm"
         />
-        {state?.errors?.email && <p className="text-red-600 text-xs mt-1">{state.errors.email[0]}</p>}
+        {state?.errors?.email && (
+          <p className="text-[#ff4d4d] text-xs mt-1.5">{state.errors.email[0]}</p>
+        )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <label className="block text-sm font-medium text-[#2d2d2d] mb-1.5">Password</label>
         <input
           name="password"
           type="password"
           required
           minLength={8}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm"
         />
-        {state?.errors?.password && <p className="text-red-600 text-xs mt-1">{state.errors.password[0]}</p>}
+        {state?.errors?.password && (
+          <p className="text-[#ff4d4d] text-xs mt-1.5">{state.errors.password[0]}</p>
+        )}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">I am a</label>
+        <label className="block text-sm font-medium text-[#2d2d2d] mb-1.5">I am a</label>
         <select
           name="role"
           defaultValue={defaultRole}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm appearance-none cursor-pointer"
         >
-          <option value="LANDLORD">Landlord</option>
-          <option value="TENANT">Tenant</option>
+          <option value="LANDLORD">🏠 Landlord</option>
+          <option value="TENANT">👤 Tenant</option>
         </select>
       </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition disabled:opacity-60"
+        className="btn-sketch w-full bg-[#2d2d2d] text-white py-3 border-[3px] border-[#2d2d2d] font-medium text-sm hover:bg-[#ff4d4d] hover:border-[#ff4d4d]"
       >
-        {pending ? 'Creating account...' : 'Create account'}
+        {pending ? 'Creating account...' : 'Create account →'}
       </button>
 
-      <p className="text-center text-sm text-gray-500">
+      <p className="text-center text-sm text-[#2d2d2d]/50">
         Already have an account?{' '}
-        <Link href="/auth/signin" className="text-[#0f3460] font-medium hover:underline">
+        <Link href="/auth/signin" className="text-[#2d5da1] font-medium hover:underline underline-offset-2">
           Sign in
         </Link>
       </p>

@@ -1,39 +1,19 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
+import { Kalam, Patrick_Hand } from 'next/font/google'
 import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
-const dmSans = localFont({
-  src: [
-    {
-      path: '../public/fonts/dm-sans-latin-400-normal.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/dm-sans-latin-700-normal.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-dm-sans',
+const kalam = Kalam({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-kalam',
   display: 'swap',
 })
 
-const playfair = localFont({
-  src: [
-    {
-      path: '../public/fonts/playfair-display-latin-400-normal.woff2',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../public/fonts/playfair-display-latin-700-normal.woff2',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-playfair',
+const patrickHand = Patrick_Hand({
+  weight: '400',
+  subsets: ['latin'],
+  variable: '--font-patrick-hand',
   display: 'swap',
 })
 
@@ -48,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${dmSans.variable} ${playfair.variable} h-full antialiased`}
+      className={`${kalam.variable} ${patrickHand.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

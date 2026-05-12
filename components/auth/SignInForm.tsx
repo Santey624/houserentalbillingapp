@@ -12,26 +12,28 @@ export default function SignInForm({ callbackUrl }: Props) {
   const [state, action, pending] = useActionState(signInAction, null)
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5">
       {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <label className="block text-sm font-medium text-[#2d2d2d] mb-1.5">Email</label>
         <input
           name="email"
           type="email"
           required
           autoComplete="email"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm"
         />
-        {state?.errors?.email && <p className="text-red-600 text-xs mt-1">{state.errors.email[0]}</p>}
+        {state?.errors?.email && (
+          <p className="text-[#ff4d4d] text-xs mt-1.5">{state.errors.email[0]}</p>
+        )}
       </div>
 
       <div>
-        <div className="flex items-center justify-between mb-1">
-          <label className="block text-sm font-medium text-gray-700">Password</label>
-          <Link href="/auth/reset" className="text-xs text-[#0f3460] hover:underline">
-            Forgot password?
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-sm font-medium text-[#2d2d2d]">Password</label>
+          <Link href="/auth/reset" className="text-xs text-[#2d5da1] hover:underline underline-offset-2">
+            Forgot?
           </Link>
         </div>
         <input
@@ -39,23 +41,25 @@ export default function SignInForm({ callbackUrl }: Props) {
           type="password"
           required
           autoComplete="current-password"
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          className="input-sketch w-full px-4 py-2.5 text-sm"
         />
-        {state?.errors?.password && <p className="text-red-600 text-xs mt-1">{state.errors.password[0]}</p>}
+        {state?.errors?.password && (
+          <p className="text-[#ff4d4d] text-xs mt-1.5">{state.errors.password[0]}</p>
+        )}
       </div>
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition disabled:opacity-60"
+        className="btn-sketch w-full bg-[#2d2d2d] text-white py-3 border-[3px] border-[#2d2d2d] font-medium text-sm hover:bg-[#ff4d4d] hover:border-[#ff4d4d]"
       >
-        {pending ? 'Signing in...' : 'Sign in'}
+        {pending ? 'Signing in...' : 'Sign in →'}
       </button>
 
-      <p className="text-center text-sm text-gray-500">
-        Don&apos;t have an account?{' '}
-        <Link href="/auth/signup" className="text-[#0f3460] font-medium hover:underline">
-          Sign up
+      <p className="text-center text-sm text-[#2d2d2d]/50">
+        No account?{' '}
+        <Link href="/auth/signup" className="text-[#2d5da1] font-medium hover:underline underline-offset-2">
+          Sign up here
         </Link>
       </p>
     </form>

@@ -1,13 +1,14 @@
 'use client'
 
 import { AppSidebar } from '@/components/shared/AppSidebar'
+import { LayoutDashboard, Search, FileText, Wrench, Settings } from 'lucide-react'
 
 const navItems = [
-  { href: '/tenant', label: 'Dashboard', icon: '🏠' },
-  { href: '/tenant/buildings', label: 'Find Building', icon: '🔍' },
-  { href: '/tenant/invoices', label: 'Invoices', icon: '🧾' },
-  { href: '/tenant/maintenance', label: 'Maintenance', icon: '🔧' },
-  { href: '/tenant/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/tenant', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/tenant/buildings', label: 'Find Building', icon: Search },
+  { href: '/tenant/invoices', label: 'Invoices', icon: FileText },
+  { href: '/tenant/maintenance', label: 'Maintenance', icon: Wrench },
+  { href: '/tenant/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function TenantSidebar() {
@@ -15,9 +16,6 @@ export default function TenantSidebar() {
     <AppSidebar
       title="AKS Rental"
       subtitle="Tenant Portal"
-      subtitleColor="text-purple-300"
-      bgColor="bg-[#1a1a2e]"
-      mutedColor="text-purple-100"
       navItems={navItems}
       rootHref="/tenant"
     />
