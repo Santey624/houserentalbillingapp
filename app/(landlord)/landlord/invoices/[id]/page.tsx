@@ -2,9 +2,11 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { formatRs } from '@/lib/utils'
+import { formatRs, formatStatus } from '@/lib/utils'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 import { verifyPaymentAction } from '@/app/actions/payments'
-import { updateInvoiceStatusAction } from '@/app/actions/invoices'
+import { deleteInvoiceAction, updateInvoiceStatusAction } from '@/app/actions/invoices'
+import DownloadInvoiceButton from '@/components/landlord/DownloadInvoiceButton'
 
 export default async function LandlordInvoiceDetailPage(props: {
   params: Promise<{ id: string }>
@@ -13,7 +15,10 @@ export default async function LandlordInvoiceDetailPage(props: {
   const session = await auth()
   if (!session?.user) redirect('/auth/signin')
 
-  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
+  const landlord = await db.landlord.findUnique({
+    where: { userId: session.user.id },
+    select: { id: true, displayName: true, address: true, contact: true, electricityRate: true, paymentDueDay: true },
+  })
   if (!landlord) redirect('/auth/signin')
 
   const invoice = await db.invoice.findFirst({
@@ -29,33 +34,62 @@ export default async function LandlordInvoiceDetailPage(props: {
   const pendingPayment = invoice.payments.find((p: any) => p.status === 'PENDING_VERIFICATION')
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl">
       <div className="flex items-center gap-3 mb-2">
         <Link href="/landlord/invoices" className="text-gray-400 hover:text-gray-600 text-sm">← Invoices</Link>
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
           <p className="text-gray-500 text-sm">
             {invoice.tenantName} · {invoice.tenancy.unit.building.name} Unit {invoice.tenancy.unit.unitNumber}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`text-sm px-3 py-1 rounded-full font-medium ${
-            invoice.status === 'PAID' ? 'bg-green-100 text-green-700'
-            : invoice.status === 'PAYMENT_SUBMITTED' ? 'bg-blue-100 text-blue-700'
-            : invoice.status === 'OVERDUE' ? 'bg-red-100 text-red-700'
-            : 'bg-gray-100 text-gray-600'
-          }`}>
-            {invoice.status.replace('_', ' ')}
-          </span>
+        <div className="flex flex-wrap items-center gap-3">
+          <StatusBadge status={invoice.status} size="base" />
+          <DownloadInvoiceButton
+            invoice={{
+              invoiceNumber: invoice.invoiceNumber,
+              tenantName: invoice.tenantName,
+              nepaliMonth: invoice.nepaliMonth,
+              nepaliYear: invoice.nepaliYear,
+              invoiceDate: invoice.invoiceDate,
+              rentCost: invoice.rentCost,
+              serviceCharge: invoice.serviceCharge,
+              totalElec: invoice.totalElec,
+              grandTotal: invoice.grandTotal,
+              notes: invoice.notes,
+              lineItems: invoice.lineItems.map((li) => ({
+                description: li.description,
+                amount: li.amount,
+                meterReading: li.meterReading
+                  ? { prevReading: li.meterReading.prevReading, currReading: li.meterReading.currReading, consumed: li.meterReading.consumed }
+                  : null,
+              })),
+            }}
+            landlord={{
+              displayName: landlord.displayName,
+              address: landlord.address,
+              contact: landlord.contact,
+              electricityRate: landlord.electricityRate,
+              paymentDueDay: landlord.paymentDueDay,
+            }}
+          />
           {invoice.status !== 'PAID' && (
             <form action={updateInvoiceStatusAction.bind(null, id, 'OVERDUE')}>
               <button type="submit" className="text-xs text-gray-400 hover:text-red-500">Mark overdue</button>
             </form>
           )}
+          <form action={deleteInvoiceAction.bind(null, id)}>
+            <button
+              type="submit"
+              className="text-xs font-semibold text-red-500 hover:text-red-700"
+            >
+              Delete invoice
+            </button>
+          </form>
         </div>
       </div>
 
@@ -73,7 +107,7 @@ export default async function LandlordInvoiceDetailPage(props: {
             </tr>
           </thead>
           <tbody>
-            {invoice.lineItems.map((li: any) => (
+            {invoice.lineItems.map((li) => (
               <tr key={li.id} className="border-b border-gray-50">
                 <td className="py-2 text-gray-700">
                   {li.description}
@@ -131,22 +165,16 @@ export default async function LandlordInvoiceDetailPage(props: {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Payment History</h3>
           <div className="space-y-3">
-            {invoice.payments.map((p: any) => (
+            {invoice.payments.map((p) => (
               <div key={p.id} className="flex items-center justify-between text-sm">
                 <div>
-                  <span className="text-gray-700">{p.method.replace('_', ' ')}</span>
+                  <span className="text-gray-700">{formatStatus(p.method)}</span>
                   {p.referenceNum && <span className="text-gray-400 ml-2">#{p.referenceNum}</span>}
                   <span className="text-gray-400 ml-2">· {new Date(p.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-gray-900">{formatRs(p.amount)}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    p.status === 'VERIFIED' ? 'bg-green-100 text-green-700'
-                    : p.status === 'REJECTED' ? 'bg-red-100 text-red-600'
-                    : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {p.status.replace('_', ' ')}
-                  </span>
+                  <StatusBadge status={p.status} />
                 </div>
               </div>
             ))}

@@ -70,11 +70,13 @@ export default function OnboardingPage() {
             <Field name="contact" label="Building Contact" />
             {buildingState?.errors && <ErrorList errors={buildingState.errors} />}
             <div className="flex gap-3">
-              <form action={skipOnboardingAction}>
-                <button type="submit" className="border border-gray-300 text-gray-600 py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50">
-                  Skip all
-                </button>
-              </form>
+              <button
+                type="submit"
+                formAction={skipOnboardingAction}
+                className="border border-gray-300 text-gray-600 py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50"
+              >
+                Skip all
+              </button>
               <button type="submit" disabled={buildingPending} className="flex-1 bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold disabled:opacity-60">
                 {buildingPending ? 'Creating...' : 'Continue'}
               </button>
@@ -91,11 +93,13 @@ export default function OnboardingPage() {
             <Field name="floor" label="Floor (optional)" />
             {unitState?.errors && <ErrorList errors={unitState.errors} />}
             <div className="flex gap-3">
-              <form action={skipOnboardingAction}>
-                <button type="submit" className="border border-gray-300 text-gray-600 py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50">
-                  Skip for now
-                </button>
-              </form>
+              <button
+                type="submit"
+                formAction={skipOnboardingAction}
+                className="border border-gray-300 text-gray-600 py-2.5 px-4 rounded-lg text-sm hover:bg-gray-50"
+              >
+                Skip for now
+              </button>
               <button type="submit" disabled={unitPending} className="flex-1 bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold disabled:opacity-60">
                 {unitPending ? 'Adding...' : 'Finish'}
               </button>

@@ -16,7 +16,7 @@ export default function LandlordSettingsPage() {
         </div>
       )}
 
-      <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4" encType="multipart/form-data">
+      <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
         <h3 className="font-semibold text-gray-900">Profile</h3>
 
         <div>

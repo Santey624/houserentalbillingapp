@@ -18,7 +18,7 @@ export default function TenantMaintenancePage() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
         <h3 className="font-semibold text-gray-900 mb-4">Submit New Request</h3>
-        <form action={action} encType="multipart/form-data" className="space-y-4">
+        <form action={action} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input

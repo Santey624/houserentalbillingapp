@@ -32,7 +32,7 @@ export default function PaymentProofForm({ invoiceId, grandTotal }: Props) {
   }
 
   return (
-    <form action={action} encType="multipart/form-data" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+    <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
       <h3 className="font-semibold text-gray-900">Submit Payment Proof</h3>
       <input type="hidden" name="invoiceId" value={invoiceId} />
       <input type="hidden" name="amount" value={grandTotal} />

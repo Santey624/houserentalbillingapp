@@ -1,6 +1,24 @@
-// Simple cn() tailwind class merge utility
 export function cn(...inputs: (string | undefined | null | false | 0)[]): string {
   return inputs.filter(Boolean).join(' ')
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  PAID: 'Paid',
+  UNPAID: 'Unpaid',
+  OVERDUE: 'Overdue',
+  PAYMENT_SUBMITTED: 'Payment Submitted',
+  PENDING_VERIFICATION: 'Pending Verification',
+  VERIFIED: 'Verified',
+  REJECTED: 'Rejected',
+  PENDING: 'Pending',
+  APPROVED: 'Approved',
+  IN_PROGRESS: 'In Progress',
+  OPEN: 'Open',
+  RESOLVED: 'Resolved',
+}
+
+export function formatStatus(status: string): string {
+  return STATUS_LABELS[status] ?? status.replace(/_/g, ' ')
 }
 
 export function formatRs(amount: number): string {

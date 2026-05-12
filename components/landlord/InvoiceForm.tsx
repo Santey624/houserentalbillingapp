@@ -6,13 +6,16 @@ import { NEPALI_MONTHS } from '@/lib/constants'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
 
 interface Props {
-  tenancyId: string
+  tenancyId?: string
+  joinRequestId?: string
+  tenantId?: string
+  directBill?: boolean
   unitId: string
   tenantName: string
   defaultRate: number
 }
 
-export default function InvoiceForm({ tenancyId, unitId, tenantName, defaultRate }: Props) {
+export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, directBill, unitId, tenantName, defaultRate }: Props) {
   const [isPending, startTransition] = useTransition()
   const [meters, setMeters] = useState<MeterRow[]>([
     { id: 'm1', name: 'Meter 1', prev: '', curr: '' },
@@ -44,12 +47,15 @@ export default function InvoiceForm({ tenancyId, unitId, tenantName, defaultRate
     setCosts((prev) => prev.map((c) => (c.id === id ? { ...c, [key]: value } : c)))
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const form = e.currentTarget
     const fd = new FormData(form)
-    fd.set('tenancyId', tenancyId)
+    if (tenancyId) fd.set('tenancyId', tenancyId)
+    if (joinRequestId) fd.set('joinRequestId', joinRequestId)
+    if (tenantId) fd.set('tenantId', tenantId)
+    if (directBill) fd.set('directBill', 'true')
     fd.set('unitId', unitId)
     fd.set('meters', JSON.stringify(meters))
     fd.set('costs', JSON.stringify(costs))
@@ -117,7 +123,7 @@ export default function InvoiceForm({ tenancyId, unitId, tenantName, defaultRate
           <span className="text-xs text-gray-400">Rate: Rs.{defaultRate}/unit</span>
         </div>
         {meters.map((m) => (
-          <div key={m.id} className="grid grid-cols-4 gap-3 items-end">
+          <div key={m.id} className="grid grid-cols-2 gap-3 items-end sm:grid-cols-4">
             <div>
               <label className="block text-xs text-gray-500 mb-1">Meter Name</label>
               <input
@@ -166,7 +172,7 @@ export default function InvoiceForm({ tenancyId, unitId, tenantName, defaultRate
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
         <h3 className="font-semibold text-gray-900">Additional Costs</h3>
         {costs.map((c) => (
-          <div key={c.id} className="grid grid-cols-3 gap-3 items-end">
+          <div key={c.id} className="grid grid-cols-2 gap-3 items-end sm:grid-cols-4">
             <div className="col-span-2">
               <label className="block text-xs text-gray-500 mb-1">Description</label>
               <input
@@ -185,6 +191,13 @@ export default function InvoiceForm({ tenancyId, unitId, tenantName, defaultRate
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
               />
             </div>
+            <button
+              type="button"
+              onClick={() => removeCost(c.id)}
+              className="text-red-400 hover:text-red-600 text-sm pb-2"
+            >
+              Remove
+            </button>
           </div>
         ))}
         <button

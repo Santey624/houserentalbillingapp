@@ -9,7 +9,7 @@ function from() {
 }
 
 function baseUrl() {
-  return process.env.NEXTAUTH_URL ?? 'http://localhost:3000'
+  return process.env.AUTH_URL ?? 'http://localhost:3000'
 }
 
 export async function sendVerificationEmail(email: string, token: string) {

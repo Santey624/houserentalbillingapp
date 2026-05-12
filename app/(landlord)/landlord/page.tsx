@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatRs } from '@/lib/utils'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 
 export default async function LandlordDashboard() {
   const session = await auth()
@@ -53,14 +54,14 @@ export default async function LandlordDashboard() {
   )
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">
         Welcome, {landlord.displayName}
       </h1>
       <p className="text-gray-500 text-sm mb-8">Here&apos;s your rental overview.</p>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { label: 'Buildings', value: landlord.buildings.length, href: '/landlord/buildings' },
           { label: 'Units', value: `${occupiedUnits}/${totalUnits}`, href: '/landlord/buildings' },
@@ -106,7 +107,7 @@ export default async function LandlordDashboard() {
 
       {/* Recent Invoices */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <h2 className="font-semibold text-gray-900">Recent Invoices</h2>
           <Link href="/landlord/invoices/new" className="text-sm bg-[#0f3460] text-white px-4 py-1.5 rounded-lg hover:bg-[#0f3460]/90 transition">
             + New Invoice
@@ -120,7 +121,7 @@ export default async function LandlordDashboard() {
               <Link
                 key={inv.id}
                 href={`/landlord/invoices/${inv.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition"
+                className="flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-gray-50 sm:items-center sm:px-6"
               >
                 <div>
                   <div className="font-medium text-sm text-gray-900">{inv.invoiceNumber}</div>
@@ -128,14 +129,7 @@ export default async function LandlordDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-semibold text-gray-900">{formatRs(inv.grandTotal)}</div>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    inv.status === 'PAID' ? 'bg-green-100 text-green-700'
-                    : inv.status === 'PAYMENT_SUBMITTED' ? 'bg-blue-100 text-blue-700'
-                    : inv.status === 'OVERDUE' ? 'bg-red-100 text-red-700'
-                    : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {inv.status.replace('_', ' ')}
-                  </span>
+                  <StatusBadge status={inv.status} />
                 </div>
               </Link>
             ))}

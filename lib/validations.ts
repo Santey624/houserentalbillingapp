@@ -51,7 +51,10 @@ export const JoinRequestSchema = z.object({
 })
 
 export const InvoiceSchema = z.object({
-  tenancyId: z.string().min(1),
+  tenancyId: z.string().optional(),
+  joinRequestId: z.string().optional(),
+  tenantId: z.string().optional(),
+  directBill: z.string().optional(),
   unitId: z.string().min(1),
   tenantName: z.string().min(1),
   nepaliMonth: z.string().min(1),
@@ -60,6 +63,9 @@ export const InvoiceSchema = z.object({
   dueDate: z.string().optional(),
   rentCost: z.coerce.number().min(0),
   serviceCharge: z.coerce.number().min(0).default(0),
+}).refine((data) => data.tenancyId || data.joinRequestId || data.tenantId || data.directBill, {
+  message: 'Select a tenant.',
+  path: ['tenancyId'],
 })
 
 export const PaymentSchema = z.object({

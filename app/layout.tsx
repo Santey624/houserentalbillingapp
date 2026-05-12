@@ -1,16 +1,40 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import localFont from 'next/font/local'
 import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
+const dmSans = localFont({
+  src: [
+    {
+      path: '../public/fonts/dm-sans-latin-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/dm-sans-latin-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-dm-sans',
+  display: 'swap',
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
+const playfair = localFont({
+  src: [
+    {
+      path: '../public/fonts/playfair-display-latin-400-normal.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../public/fonts/playfair-display-latin-700-normal.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-playfair',
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -24,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${dmSans.variable} ${playfair.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

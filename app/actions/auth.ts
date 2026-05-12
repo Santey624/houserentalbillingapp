@@ -70,18 +70,21 @@ export async function signInAction(prevState: ActionState, formData: FormData): 
 
   const { email, password } = parsed.data
 
+  const user = await db.user.findUnique({ where: { email }, select: { emailVerified: true } })
+  if (user && !user.emailVerified) {
+    return { errors: { email: ['Please verify your email before signing in'] } }
+  }
+
   try {
     await signIn('credentials', { email, password, redirect: false })
   } catch {
     return { errors: { email: ['Invalid email or password'] } }
   }
 
-  // signIn with redirect: false doesn't auto-redirect; we handle below
-  // Check role and redirect appropriately
-  const user = await db.user.findUnique({ where: { email }, select: { role: true } })
-  if (!user) return { errors: { email: ['Invalid email or password'] } }
+  const fullUser = await db.user.findUnique({ where: { email }, select: { role: true } })
+  if (!fullUser) return { errors: { email: ['Invalid email or password'] } }
 
-  redirect(user.role === 'LANDLORD' ? '/landlord' : '/tenant')
+  redirect(fullUser.role === 'LANDLORD' ? '/landlord' : '/tenant')
 }
 
 export async function verifyEmailAction(token: string): Promise<{ success: boolean; message: string }> {

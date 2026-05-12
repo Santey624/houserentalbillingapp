@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatRs } from '@/lib/utils'
+import { StatusBadge } from '@/components/shared/StatusBadge'
 
 export default async function TenantDashboard() {
   const session = await auth()
@@ -33,7 +34,7 @@ export default async function TenantDashboard() {
   const latestInvoice = activeTenancy?.invoices[0]
 
   return (
-    <div className="p-8">
+    <div className="p-4 sm:p-6 lg:p-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">
         Welcome, {tenant.displayName}
       </h1>
@@ -68,7 +69,7 @@ export default async function TenantDashboard() {
       ) : (
         <>
           {/* Current tenancy info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+          <div className="grid grid-cols-1 gap-5 mb-8 lg:grid-cols-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
               <p className="text-xs text-gray-400 mb-1">Current Address</p>
               <p className="font-semibold text-gray-900">{activeTenancy.unit.building.name}</p>
@@ -82,14 +83,7 @@ export default async function TenantDashboard() {
                 <p className="text-gray-600 text-sm">{latestInvoice.nepaliMonth} {latestInvoice.nepaliYear}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-gray-900 font-bold">{formatRs(latestInvoice.grandTotal)}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    latestInvoice.status === 'PAID' ? 'bg-green-100 text-green-700'
-                    : latestInvoice.status === 'PAYMENT_SUBMITTED' ? 'bg-blue-100 text-blue-700'
-                    : latestInvoice.status === 'OVERDUE' ? 'bg-red-100 text-red-700'
-                    : 'bg-orange-100 text-orange-700'
-                  }`}>
-                    {latestInvoice.status.replace('_', ' ')}
-                  </span>
+                  <StatusBadge status={latestInvoice.status} />
                 </div>
               </Link>
             )}
@@ -97,7 +91,7 @@ export default async function TenantDashboard() {
 
           {/* Recent invoices */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4 sm:px-6">
               <h2 className="font-semibold text-gray-900">Recent Invoices</h2>
               <Link href="/tenant/invoices" className="text-sm text-[#0f3460] hover:underline">View all</Link>
             </div>
@@ -109,7 +103,7 @@ export default async function TenantDashboard() {
                   <Link
                     key={inv.id}
                     href={`/tenant/invoices/${inv.id}`}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition"
+                    className="flex items-start justify-between gap-4 px-4 py-4 transition hover:bg-gray-50 sm:items-center sm:px-6"
                   >
                     <div>
                       <div className="font-medium text-sm text-gray-900">{inv.invoiceNumber}</div>
@@ -117,14 +111,7 @@ export default async function TenantDashboard() {
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-semibold">{formatRs(inv.grandTotal)}</div>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        inv.status === 'PAID' ? 'bg-green-100 text-green-700'
-                        : inv.status === 'PAYMENT_SUBMITTED' ? 'bg-blue-100 text-blue-700'
-                        : inv.status === 'OVERDUE' ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {inv.status.replace('_', ' ')}
-                      </span>
+                      <StatusBadge status={inv.status} />
                     </div>
                   </Link>
                 ))}
