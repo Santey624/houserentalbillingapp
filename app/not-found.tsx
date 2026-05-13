@@ -1,14 +1,17 @@
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="text-center">
-        <div className="text-6xl font-bold text-[#0f3460] mb-4">404</div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Page not found</h2>
-        <p className="text-gray-500 text-sm mb-6">The page you&apos;re looking for doesn&apos;t exist.</p>
-        <Link href="/" className="bg-[#0f3460] text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition">
-          Go home
+    <div className="min-h-screen flex items-center justify-center bg-background p-6">
+      <div className="text-center max-w-md">
+        <div className="text-7xl font-bold gradient-text mb-4 font-mono">404</div>
+        <h2 className="text-3xl text-foreground mb-3">Page not found</h2>
+        <p className="text-muted-foreground text-sm mb-10 leading-relaxed">
+          The page you&apos;re looking for doesn&apos;t exist or has been moved.
+        </p>
+        <Link href="/" className="btn-primary inline-flex">
+          Go home <ArrowRight size={14} />
         </Link>
       </div>
     </div>

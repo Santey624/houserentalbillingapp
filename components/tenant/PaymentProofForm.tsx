@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { submitPaymentProofAction } from '@/app/actions/payments'
+import { CheckCircle2, CreditCard } from 'lucide-react'
 
 interface Props {
   invoiceId: string
@@ -14,7 +15,8 @@ export default function PaymentProofForm({ invoiceId, grandTotal }: Props) {
 
   if (state?.message) {
     return (
-      <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-green-700 text-sm">
+      <div className="alert-success">
+        <CheckCircle2 size={16} className="flex-shrink-0" />
         {state.message}
       </div>
     )
@@ -22,66 +24,65 @@ export default function PaymentProofForm({ invoiceId, grandTotal }: Props) {
 
   if (!showForm) {
     return (
-      <button
-        onClick={() => setShowForm(true)}
-        className="w-full bg-[#0f3460] text-white py-3 rounded-xl font-semibold hover:bg-[#0f3460]/90 transition"
-      >
+      <button onClick={() => setShowForm(true)} className="btn-primary w-full h-12">
+        <CreditCard size={16} />
         I&apos;ve Paid — Submit Proof
       </button>
     )
   }
 
   return (
-    <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-      <h3 className="font-semibold text-gray-900">Submit Payment Proof</h3>
-      <input type="hidden" name="invoiceId" value={invoiceId} />
-      <input type="hidden" name="amount" value={grandTotal} />
+    <div className="card-modern p-6 space-y-4">
+      <h3 className="font-semibold text-foreground">Submit Payment Proof</h3>
+      <form action={action} className="space-y-4">
+        <input type="hidden" name="invoiceId" value={invoiceId} />
+        <input type="hidden" name="amount" value={grandTotal} />
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
-        <select name="method" required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]">
-          <option value="ESEWA">eSewa</option>
-          <option value="KHALTI">Khalti</option>
-          <option value="BANK_TRANSFER">Bank Transfer</option>
-          <option value="CASH">Cash</option>
-        </select>
-        {state?.errors?.method && <p className="text-red-600 text-xs mt-1">{state.errors.method[0]}</p>}
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Reference Number (optional)</label>
-        <input name="referenceNum" type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Screenshot / Proof</label>
-        <input name="proof" type="file" accept="image/*" className="w-full text-sm text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-[#0f3460] file:text-white file:text-xs" />
-      </div>
-
-      {state?.errors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          {Object.values(state.errors).flat().map((m, i) => (
-            <p key={i} className="text-red-700 text-xs">{m}</p>
-          ))}
+        <div>
+          <label className="field-label">Payment Method</label>
+          <select name="method" required className="select-modern">
+            <option value="ESEWA">eSewa</option>
+            <option value="KHALTI">Khalti</option>
+            <option value="BANK_TRANSFER">Bank Transfer</option>
+            <option value="CASH">Cash</option>
+          </select>
+          {state?.errors?.method && <p className="field-error">{state.errors.method[0]}</p>}
         </div>
-      )}
 
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={pending}
-          className="flex-1 bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm disabled:opacity-60"
-        >
-          {pending ? 'Submitting...' : 'Submit'}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowForm(false)}
-          className="border border-gray-300 text-gray-600 px-4 py-2.5 rounded-lg text-sm"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
+        <div>
+          <label className="field-label">Reference Number (optional)</label>
+          <input name="referenceNum" type="text" className="input-modern" placeholder="Transaction ID or reference" />
+        </div>
+
+        <div>
+          <label className="field-label">Payment Screenshot / Proof</label>
+          <input
+            name="proof"
+            type="file"
+            accept="image/*"
+            className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border file:border-border file:bg-muted file:text-foreground file:text-xs file:cursor-pointer hover:file:bg-muted/80 transition-colors"
+          />
+        </div>
+
+        {state?.errors && (
+          <div className="alert-error">
+            <div>
+              {Object.values(state.errors).flat().map((m, i) => (
+                <p key={i} className="text-sm">{m}</p>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-1">
+          <button type="submit" disabled={pending} className="btn-primary flex-1 h-10">
+            {pending ? 'Submitting...' : 'Submit Proof'}
+          </button>
+          <button type="button" onClick={() => setShowForm(false)} className="btn-secondary px-4">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }

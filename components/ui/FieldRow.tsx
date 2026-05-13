@@ -7,7 +7,7 @@ interface FieldRowProps {
 export default function FieldRow({ label, error, children }: FieldRowProps) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-      <label className="text-sm font-medium text-gray-600 sm:w-44 shrink-0">
+      <label className="field-label sm:w-44 shrink-0">
         {label}
       </label>
       <div className="flex-1">

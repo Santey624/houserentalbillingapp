@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InvoiceForm from '@/components/landlord/InvoiceForm'
+import { ChevronLeft } from 'lucide-react'
 
 type VacantUnit = {
   id: string
@@ -120,10 +121,7 @@ export default async function NewInvoicePage(props: {
       take: 100,
     }),
     db.joinRequest.findMany({
-      where: {
-        status: 'PENDING',
-        building: { landlordId: landlord.id },
-      },
+      where: { status: 'PENDING', building: { landlordId: landlord.id } },
       select: {
         id: true,
         unitId: true,
@@ -137,10 +135,7 @@ export default async function NewInvoicePage(props: {
     db.tenant.findMany({
       where: {
         tenancies: {
-          none: {
-            status: 'ACTIVE',
-            unit: { building: { landlordId: landlord.id } },
-          },
+          none: { status: 'ACTIVE', unit: { building: { landlordId: landlord.id } } },
         },
       },
       select: { id: true, displayName: true, user: { select: { email: true } } },
@@ -183,30 +178,27 @@ export default async function NewInvoicePage(props: {
 
   return (
     <InvoicePageShell>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Create Bill Directly</h3>
+      {/* Direct bill */}
+      <div className="card-modern p-6 mb-5">
+        <h3 className="font-semibold text-foreground mb-4">Create Bill Directly</h3>
         {allVacantUnits.length === 0 ? (
-          <p className="text-sm text-gray-400">Create a building and vacant unit first.</p>
+          <p className="text-sm text-muted-foreground">Create a building and vacant unit first.</p>
         ) : (
           <form action="/landlord/invoices/new" className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tenant Name</label>
+              <label className="field-label">Tenant Name</label>
               <input
                 name="manualTenantName"
                 type="text"
                 required
                 minLength={2}
                 placeholder="Enter tenant name"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className="input-modern"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Unit</label>
-              <select
-                name="unitId"
-                required
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
-              >
+              <label className="field-label">Unit</label>
+              <select name="unitId" required className="select-modern">
                 {allVacantUnits.map((unit) => (
                   <option key={unit.id} value={unit.id}>
                     {unit.building.name} · Unit {unit.unitNumber}
@@ -214,36 +206,34 @@ export default async function NewInvoicePage(props: {
                 ))}
               </select>
             </div>
-            <button
-              type="submit"
-              className="w-full bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition"
-            >
+            <button type="submit" className="btn-primary w-full h-11">
               Continue to Bill
             </button>
           </form>
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Use Existing Tenant</h3>
+      {/* Existing tenants */}
+      <div className="card-modern p-6 mb-5">
+        <h3 className="font-semibold text-foreground mb-4">Use Existing Tenant</h3>
         {tenancies.length === 0 && pendingRequests.length === 0 && registeredTenants.length === 0 ? (
-          <p className="text-gray-400 text-sm">No tenant accounts found. Ask the tenant to sign up first.</p>
+          <p className="text-muted-foreground text-sm">No tenant accounts found. Ask the tenant to sign up first.</p>
         ) : (
           <div className="space-y-6">
             {tenancies.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Active tenants</p>
+                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Active tenants</p>
                 {tenancies.map((t) => (
                   <Link
                     key={t.id}
                     href={`/landlord/invoices/new?tenancyId=${t.id}&unitId=${t.unitId}`}
-                    className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                    className="flex items-center justify-between p-3.5 rounded-xl border border-border hover:border-accent/40 hover:bg-muted/50 transition-all group"
                   >
                     <div>
-                      <p className="font-medium text-sm">{t.tenant.displayName}</p>
-                      <p className="text-xs text-gray-400">{t.unit.building.name} · Unit {t.unit.unitNumber}</p>
+                      <p className="font-medium text-sm text-foreground">{t.tenant.displayName}</p>
+                      <p className="text-xs text-muted-foreground">{t.unit.building.name} · Unit {t.unit.unitNumber}</p>
                     </div>
-                    <span className="text-[#0f3460] text-sm">Select →</span>
+                    <span className="text-xs text-accent group-hover:underline underline-offset-2">Select</span>
                   </Link>
                 ))}
               </div>
@@ -251,38 +241,37 @@ export default async function NewInvoicePage(props: {
 
             {pendingRequests.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pending requests</p>
+                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Pending requests</p>
                 {pendingRequests.map((req) => {
                   const requestVacantUnits = vacantUnitsByBuilding[req.building.id] ?? []
-
                   return (
-                    <div key={req.id} className="p-3 rounded-lg border border-blue-100 bg-blue-50">
+                    <div key={req.id} className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50">
                       <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="font-medium text-sm">{req.tenant.displayName}</p>
-                          <p className="text-xs text-blue-700/70">
+                          <p className="font-medium text-sm text-foreground">{req.tenant.displayName}</p>
+                          <p className="text-xs text-muted-foreground">
                             {req.building.name}{req.unit ? ` · Unit ${req.unit.unitNumber}` : ' · No unit selected'}
                           </p>
                         </div>
                         {req.unitId && (
                           <Link
                             href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${req.unitId}`}
-                            className="text-[#0f3460] text-sm"
+                            className="text-xs text-accent hover:underline underline-offset-2"
                           >
-                            Select →
+                            Select
                           </Link>
                         )}
                       </div>
                       {!req.unitId && (
                         <div className="mt-3 flex flex-wrap gap-2">
                           {requestVacantUnits.length === 0 ? (
-                            <p className="text-xs text-blue-700/70">No vacant units in this building.</p>
+                            <p className="text-xs text-muted-foreground">No vacant units in this building.</p>
                           ) : (
                             requestVacantUnits.map((u) => (
                               <Link
                                 key={u.id}
                                 href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${u.id}`}
-                                className="rounded-md border border-blue-200 bg-white px-3 py-1.5 text-xs font-medium text-[#0f3460] hover:bg-blue-100"
+                                className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent/40 transition-colors"
                               >
                                 Unit {u.unitNumber}
                               </Link>
@@ -298,22 +287,22 @@ export default async function NewInvoicePage(props: {
 
             {registeredTenants.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Registered tenants</p>
+                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Registered tenants</p>
                 {allVacantUnits.length === 0 ? (
-                  <p className="text-sm text-gray-400">No vacant units available for a new bill.</p>
+                  <p className="text-sm text-muted-foreground">No vacant units available for a new bill.</p>
                 ) : (
                   registeredTenants.map((tenant) => (
-                    <div key={tenant.id} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                    <div key={tenant.id} className="p-3.5 rounded-xl border border-border bg-muted/30">
                       <div>
-                        <p className="font-medium text-sm">{tenant.displayName}</p>
-                        <p className="text-xs text-gray-400">{tenant.user.email}</p>
+                        <p className="font-medium text-sm text-foreground">{tenant.displayName}</p>
+                        <p className="text-xs text-muted-foreground">{tenant.user.email}</p>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {allVacantUnits.map((unit) => (
                           <Link
                             key={unit.id}
                             href={`/landlord/invoices/new?tenantId=${tenant.id}&unitId=${unit.id}`}
-                            className="rounded-md border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-[#0f3460] hover:bg-gray-100"
+                            className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent/40 transition-colors"
                           >
                             {unit.building.name} · Unit {unit.unitNumber}
                           </Link>
@@ -333,11 +322,15 @@ export default async function NewInvoicePage(props: {
 
 function InvoicePageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/landlord/invoices" className="text-gray-400 hover:text-gray-600 text-sm">← Invoices</Link>
+    <div className="p-5 sm:p-8 max-w-2xl">
+      <Link href="/landlord/invoices" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <ChevronLeft size={14} />
+        Invoices
+      </Link>
+      <div className="mb-8">
+        <h1 className="text-4xl text-foreground mb-1">Generate Invoice</h1>
+        <p className="text-sm text-muted-foreground">Create a new invoice for a tenant</p>
       </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Generate Invoice</h1>
       {children}
     </div>
   )

@@ -11,7 +11,7 @@ export default function NotesSection({ notes, onAdd, onRemove, onUpdate }: Props
   return (
     <SectionCard title="Landlord Notes">
       {notes.length === 0 && (
-        <p className="text-sm text-gray-400 italic">No notes added yet.</p>
+        <p className="text-sm text-muted-foreground italic">No notes added yet.</p>
       )}
 
       {notes.map((note, i) => (
@@ -21,12 +21,12 @@ export default function NotesSection({ notes, onAdd, onRemove, onUpdate }: Props
             onChange={(e) => onUpdate(i, e.target.value)}
             placeholder={`Note ${i + 1} — e.g. Water supply disruption on 5th`}
             rows={2}
-            className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm resize-y focus:outline-none focus:ring-1 focus:ring-[#2980b9]"
+            className="textarea-modern flex-1 resize-y"
           />
           <button
             type="button"
             onClick={() => onRemove(i)}
-            className="text-red-400 hover:text-red-600 text-lg leading-none font-bold px-1 mt-2"
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border mt-1"
             title="Remove note"
           >
             ×
@@ -37,7 +37,7 @@ export default function NotesSection({ notes, onAdd, onRemove, onUpdate }: Props
       <button
         type="button"
         onClick={onAdd}
-        className="text-sm text-[#2980b9] hover:underline mt-1"
+        className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2 mt-1"
       >
         + Add Note
       </button>

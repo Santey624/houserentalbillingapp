@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { markAllReadAction } from '@/app/actions/notifications'
 import NotificationList from '@/components/shared/NotificationList'
+import { Bell } from 'lucide-react'
 
 export default async function NotificationsPage() {
   const session = await auth()
@@ -17,19 +18,22 @@ export default async function NotificationsPage() {
   const unreadCount = notifications.filter((n: (typeof notifications)[number]) => !n.isRead).length
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          Notifications
-          {unreadCount > 0 && (
-            <span className="ml-2 text-sm bg-red-500 text-white rounded-full px-2 py-0.5">
-              {unreadCount}
-            </span>
-          )}
-        </h1>
+    <div className="min-h-screen bg-background p-5 sm:p-8 max-w-2xl mx-auto">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-4xl text-foreground mb-1">
+            Notifications
+            {unreadCount > 0 && (
+              <span className="ml-3 inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full text-xs font-semibold gradient-bg text-white">
+                {unreadCount}
+              </span>
+            )}
+          </h1>
+          <p className="text-sm text-muted-foreground">{unreadCount} unread</p>
+        </div>
         {unreadCount > 0 && (
           <form action={markAllReadAction}>
-            <button type="submit" className="text-sm text-[#0f3460] hover:underline">
+            <button type="submit" className="text-sm text-accent hover:underline underline-offset-2">
               Mark all read
             </button>
           </form>

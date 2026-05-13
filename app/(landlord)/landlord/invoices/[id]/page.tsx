@@ -7,6 +7,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { verifyPaymentAction } from '@/app/actions/payments'
 import { deleteInvoiceAction, updateInvoiceStatusAction } from '@/app/actions/invoices'
 import DownloadInvoiceButton from '@/components/landlord/DownloadInvoiceButton'
+import { ChevronLeft, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
 
 export default async function LandlordInvoiceDetailPage(props: {
   params: Promise<{ id: string }>
@@ -34,20 +35,21 @@ export default async function LandlordInvoiceDetailPage(props: {
   const pendingPayment = invoice.payments.find((p: any) => p.status === 'PENDING_VERIFICATION')
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl">
-      <div className="flex items-center gap-3 mb-2">
-        <Link href="/landlord/invoices" className="text-gray-400 hover:text-gray-600 text-sm">← Invoices</Link>
-      </div>
+    <div className="p-5 sm:p-8 max-w-3xl">
+      <Link href="/landlord/invoices" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <ChevronLeft size={14} />
+        Invoices
+      </Link>
 
       {/* Header */}
-      <div className="flex flex-col gap-3 mb-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{invoice.invoiceNumber}</h1>
-          <p className="text-gray-500 text-sm">
-            {invoice.tenantName} · {invoice.tenancy.unit.building.name} Unit {invoice.tenancy.unit.unitNumber}
+          <h1 className="text-3xl text-foreground mb-1">{invoice.invoiceNumber}</h1>
+          <p className="text-muted-foreground text-sm">
+            {invoice.tenantName} &middot; {invoice.tenancy.unit.building.name} Unit {invoice.tenancy.unit.unitNumber}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={invoice.status} size="base" />
           <DownloadInvoiceButton
             invoice={{
@@ -79,81 +81,93 @@ export default async function LandlordInvoiceDetailPage(props: {
           />
           {invoice.status !== 'PAID' && (
             <form action={updateInvoiceStatusAction.bind(null, id, 'OVERDUE')}>
-              <button type="submit" className="text-xs text-gray-400 hover:text-red-500">Mark overdue</button>
+              <button type="submit" className="text-xs text-muted-foreground hover:text-red-500 transition-colors px-2 py-1">
+                Mark overdue
+              </button>
             </form>
           )}
           <form action={deleteInvoiceAction.bind(null, id)}>
-            <button
-              type="submit"
-              className="text-xs font-semibold text-red-500 hover:text-red-700"
-            >
-              Delete invoice
+            <button type="submit" className="text-xs font-medium text-red-500 hover:text-red-700 transition-colors px-2 py-1">
+              Delete
             </button>
           </form>
         </div>
       </div>
 
       {/* Invoice summary */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-        <div className="flex justify-between text-sm text-gray-600 mb-4">
-          <span>Billing Period: <strong>{invoice.nepaliMonth} {invoice.nepaliYear}</strong></span>
-          <span>Date: {invoice.invoiceDate}</span>
+      <div className="card-modern p-6 mb-6">
+        <div className="flex justify-between text-sm text-muted-foreground mb-5">
+          <span>Billing Period: <span className="font-medium text-foreground">{invoice.nepaliMonth} {invoice.nepaliYear}</span></span>
+          <span>Date: <span className="font-medium text-foreground">{invoice.invoiceDate}</span></span>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100">
-              <th className="text-left py-2 text-gray-500 font-medium">Description</th>
-              <th className="text-right py-2 text-gray-500 font-medium">Amount</th>
+            <tr className="border-b border-border">
+              <th className="text-left pb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Description</th>
+              <th className="text-right pb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount</th>
             </tr>
           </thead>
           <tbody>
             {invoice.lineItems.map((li) => (
-              <tr key={li.id} className="border-b border-gray-50">
-                <td className="py-2 text-gray-700">
+              <tr key={li.id} className="border-b border-border/50">
+                <td className="py-3 text-foreground">
                   {li.description}
                   {li.meterReading && (
-                    <span className="text-gray-400 text-xs ml-2">
-                      ({li.meterReading.prevReading} → {li.meterReading.currReading}, {li.meterReading.consumed} units)
+                    <span className="text-muted-foreground text-xs ml-2">
+                      ({li.meterReading.prevReading} &rarr; {li.meterReading.currReading}, {li.meterReading.consumed} units)
                     </span>
                   )}
                 </td>
-                <td className="py-2 text-right text-gray-900">{formatRs(li.amount)}</td>
+                <td className="py-3 text-right font-medium text-foreground">{formatRs(li.amount)}</td>
               </tr>
             ))}
           </tbody>
           <tfoot>
             <tr>
-              <td className="pt-4 font-bold text-gray-900">Grand Total</td>
-              <td className="pt-4 text-right font-bold text-gray-900 text-lg">{formatRs(invoice.grandTotal)}</td>
+              <td className="pt-4 font-semibold text-foreground">Grand Total</td>
+              <td className="pt-4 text-right font-bold text-foreground text-xl">{formatRs(invoice.grandTotal)}</td>
             </tr>
           </tfoot>
         </table>
-        {invoice.notes && <p className="text-gray-400 text-xs mt-4">Notes: {invoice.notes}</p>}
+        {invoice.notes && (
+          <p className="text-muted-foreground text-xs mt-4 pt-4 border-t border-border">
+            Notes: {invoice.notes}
+          </p>
+        )}
       </div>
 
       {/* Payment verification */}
       {pendingPayment && (
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-          <h3 className="font-semibold text-blue-900 mb-3">Payment Proof Submitted</h3>
-          <div className="text-sm text-blue-800 space-y-1 mb-4">
-            <p>Method: <strong>{pendingPayment.method.replace('_', ' ')}</strong></p>
-            <p>Amount: <strong>{formatRs(pendingPayment.amount)}</strong></p>
-            {pendingPayment.referenceNum && <p>Reference: <strong>{pendingPayment.referenceNum}</strong></p>}
+        <div className="card-modern p-6 mb-6 border-accent/30" style={{ background: 'rgba(0,82,255,0.02)' }}>
+          <h3 className="font-semibold text-foreground mb-4">Payment Proof Submitted</h3>
+          <div className="text-sm text-muted-foreground space-y-1.5 mb-5">
+            <p>Method: <span className="font-medium text-foreground">{pendingPayment.method.replace('_', ' ')}</span></p>
+            <p>Amount: <span className="font-medium text-foreground">{formatRs(pendingPayment.amount)}</span></p>
+            {pendingPayment.referenceNum && (
+              <p>Reference: <span className="font-medium text-foreground">{pendingPayment.referenceNum}</span></p>
+            )}
             {pendingPayment.proofImageUrl && (
-              <a href={pendingPayment.proofImageUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline block">
-                View proof image →
+              <a
+                href={pendingPayment.proofImageUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-accent hover:underline underline-offset-2"
+              >
+                View proof image <ExternalLink size={12} />
               </a>
             )}
           </div>
           <div className="flex gap-3">
             <form action={verifyPaymentAction.bind(null, pendingPayment.id, true, undefined)}>
-              <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition">
-                ✓ Verify Payment
+              <button type="submit" className="btn-primary py-2 px-4 text-xs">
+                <CheckCircle2 size={14} />
+                Verify Payment
               </button>
             </form>
             <form action={verifyPaymentAction.bind(null, pendingPayment.id, false, 'Payment could not be verified')}>
-              <button type="submit" className="border border-red-300 text-red-600 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-50 transition">
-                ✗ Reject
+              <button type="submit" className="btn-danger py-2 px-4 text-xs">
+                <XCircle size={14} />
+                Reject
               </button>
             </form>
           </div>
@@ -162,18 +176,18 @@ export default async function LandlordInvoiceDetailPage(props: {
 
       {/* Payment history */}
       {invoice.payments.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-          <h3 className="font-semibold text-gray-900 mb-4">Payment History</h3>
+        <div className="card-modern p-6">
+          <h3 className="font-semibold text-foreground mb-4">Payment History</h3>
           <div className="space-y-3">
             {invoice.payments.map((p) => (
-              <div key={p.id} className="flex items-center justify-between text-sm">
+              <div key={p.id} className="flex items-center justify-between text-sm py-2 border-b border-border last:border-0">
                 <div>
-                  <span className="text-gray-700">{formatStatus(p.method)}</span>
-                  {p.referenceNum && <span className="text-gray-400 ml-2">#{p.referenceNum}</span>}
-                  <span className="text-gray-400 ml-2">· {new Date(p.createdAt).toLocaleDateString()}</span>
+                  <span className="text-foreground font-medium">{formatStatus(p.method)}</span>
+                  {p.referenceNum && <span className="text-muted-foreground ml-2">#{p.referenceNum}</span>}
+                  <span className="text-muted-foreground ml-2">&middot; {new Date(p.createdAt).toLocaleDateString()}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-900">{formatRs(p.amount)}</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-medium text-foreground">{formatRs(p.amount)}</span>
                   <StatusBadge status={p.status} />
                 </div>
               </div>

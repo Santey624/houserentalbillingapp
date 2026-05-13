@@ -8,8 +8,8 @@ export default function Input({ hasError, className = "", ...props }: InputProps
   return (
     <input
       {...props}
-      className={`w-full border rounded px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#2980b9] ${
-        hasError ? "border-red-400" : "border-gray-300"
+      className={`input-modern ${
+        hasError ? "border-red-400 focus:ring-red-400/20" : ""
       } ${className}`}
     />
   );

@@ -1,19 +1,25 @@
 import type { Metadata } from 'next'
-import { Kalam, Patrick_Hand } from 'next/font/google'
+import { Inter, Calistoga, JetBrains_Mono } from 'next/font/google'
 import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
-const kalam = Kalam({
-  weight: ['400', '700'],
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-kalam',
+  variable: '--font-inter',
   display: 'swap',
 })
 
-const patrickHand = Patrick_Hand({
+const calistoga = Calistoga({
   weight: '400',
   subsets: ['latin'],
-  variable: '--font-patrick-hand',
+  variable: '--font-calistoga',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  variable: '--font-jetbrains',
+  weight: ['400', '500'],
   display: 'swap',
 })
 
@@ -28,7 +34,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${kalam.variable} ${patrickHand.variable} h-full`}
+      className={`${inter.variable} ${calistoga.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">

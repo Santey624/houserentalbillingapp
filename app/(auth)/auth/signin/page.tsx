@@ -6,19 +6,16 @@ export default async function SignInPage(props: {
   const { callbackUrl, error } = await props.searchParams
   return (
     <>
-      <h1 className="font-heading text-3xl font-bold text-[#2d2d2d] -rotate-1 inline-block mb-1">
-        Welcome back! 👋
-      </h1>
-      <p className="text-[#2d2d2d]/50 text-sm mb-7">sign in to your account</p>
+      <div className="mb-8">
+        <h1 className="text-3xl text-foreground mb-1.5">Welcome back</h1>
+        <p className="text-sm text-muted-foreground">Sign in to your account to continue</p>
+      </div>
 
       {error && (
-        <div
-          className="mb-5 px-4 py-3 bg-[#ff4d4d]/10 border-[2px] border-[#ff4d4d] text-[#ff4d4d] text-sm"
-          style={{ borderRadius: '95px 8px 85px 8px / 8px 85px 8px 95px' }}
-        >
+        <div className="alert-error mb-6">
           {error === 'Verification'
-            ? '⚠️ Please verify your email first!'
-            : '⚠️ Wrong email or password!'}
+            ? 'Please verify your email before signing in.'
+            : 'Incorrect email or password. Please try again.'}
         </div>
       )}
 

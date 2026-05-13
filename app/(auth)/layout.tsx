@@ -1,25 +1,68 @@
+import Link from 'next/link'
+import { Building2, FileText, Wrench } from 'lucide-react'
+
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen grid lg:grid-cols-2">
+      {/* ── Left branding panel ──────────────────────────────── */}
+      <div className="hidden lg:flex flex-col bg-foreground relative overflow-hidden p-12">
+        {/* Dot texture */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+        {/* Radial glow */}
+        <div
+          className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10"
+          style={{ background: 'radial-gradient(circle, #0052FF, transparent)', filter: 'blur(80px)' }}
+        />
 
         {/* Logo */}
-        <div className="text-center mb-8">
-          <span className="inline-block bg-[#ff4d4d] text-white px-6 py-2 border-[3px] border-[#2d2d2d] font-heading text-2xl font-bold shadow-hard wobbly-md">
-            ✏️ AKS Rental
-          </span>
+        <Link href="/" className="relative flex items-center gap-3 mb-auto">
+          <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-base">A</span>
+          </div>
+          <span className="text-white font-semibold text-xl">AKS Rental</span>
+        </Link>
+
+        {/* Feature highlights */}
+        <div className="relative space-y-6 my-auto">
+          {[
+            { icon: Building2, text: 'Manage buildings & units across Nepal' },
+            { icon: FileText, text: 'Generate invoices in Nepali calendar' },
+            { icon: Wrench, text: 'Track payments & maintenance requests' },
+          ].map(({ icon: Icon, text }) => (
+            <div key={text} className="flex items-center gap-4">
+              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                <Icon size={18} className="text-white" />
+              </div>
+              <p className="text-white/70 text-sm leading-relaxed">{text}</p>
+            </div>
+          ))}
         </div>
 
-        {/* Card */}
-        <div className="bg-white border-[3px] border-[#2d2d2d] px-6 sm:px-8 py-8 sm:py-10 relative shadow-hard-lg wobbly">
-          {/* Tape strip */}
-          <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-16 h-7 bg-[#e5e0d8]/80 border border-[#2d2d2d]/20 rotate-1 rounded-sm" />
+        {/* Footer tagline */}
+        <p className="relative text-white/30 text-xs mt-auto">
+          Nepal&apos;s modern rental management platform
+        </p>
+      </div>
+
+      {/* ── Right form panel ─────────────────────────────────── */}
+      <div className="flex flex-col items-center justify-center p-6 sm:p-10">
+        {/* Mobile logo */}
+        <Link href="/" className="lg:hidden flex items-center gap-3 mb-10">
+          <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center shadow-md">
+            <span className="text-white font-bold">A</span>
+          </div>
+          <span className="font-semibold text-foreground text-lg">AKS Rental</span>
+        </Link>
+
+        <div className="w-full max-w-sm">
           {children}
         </div>
-
-        <p className="text-center text-xs text-[#2d2d2d]/40 mt-6 italic">
-          — Nepal&apos;s friendliest rental platform —
-        </p>
       </div>
     </div>
   )

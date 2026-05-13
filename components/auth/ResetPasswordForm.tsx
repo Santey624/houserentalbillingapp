@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { resetPasswordAction } from '@/app/actions/auth'
 import Link from 'next/link'
+import { CheckCircle2, ArrowRight } from 'lucide-react'
 
 interface Props {
   token: string
@@ -13,14 +14,13 @@ export default function ResetPasswordForm({ token }: Props) {
 
   if (state?.message) {
     return (
-      <div className="text-center">
-        <div className="text-5xl mb-4">✅</div>
-        <p className="text-gray-700 text-sm mb-4">{state.message}</p>
-        <Link
-          href="/auth/signin"
-          className="inline-block bg-[#0f3460] text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-[#0f3460]/90 transition"
-        >
-          Sign in
+      <div className="text-center space-y-5">
+        <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto">
+          <CheckCircle2 size={24} className="text-emerald-600" />
+        </div>
+        <p className="text-muted-foreground text-sm">{state.message}</p>
+        <Link href="/auth/signin" className="btn-primary inline-flex">
+          Sign in <ArrowRight size={14} />
         </Link>
       </div>
     )
@@ -31,24 +31,21 @@ export default function ResetPasswordForm({ token }: Props) {
       <input type="hidden" name="token" value={token} />
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+        <label className="field-label">New Password</label>
         <input
           name="password"
           type="password"
           required
           minLength={8}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+          placeholder="At least 8 characters"
+          className="input-modern"
         />
-        {state?.errors?.password && <p className="text-red-600 text-xs mt-1">{state.errors.password[0]}</p>}
-        {state?.errors?.token && <p className="text-red-600 text-xs mt-1">{state.errors.token[0]}</p>}
+        {state?.errors?.password && <p className="field-error">{state.errors.password[0]}</p>}
+        {state?.errors?.token && <p className="field-error">{state.errors.token[0]}</p>}
       </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition disabled:opacity-60"
-      >
-        {pending ? 'Resetting...' : 'Reset password'}
+      <button type="submit" disabled={pending} className="btn-primary w-full h-11">
+        {pending ? 'Resetting...' : <>Reset password <ArrowRight size={14} /></>}
       </button>
     </form>
   )

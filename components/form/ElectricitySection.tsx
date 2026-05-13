@@ -21,7 +21,7 @@ export default function ElectricitySection({
 }: Props) {
   return (
     <SectionCard title="Electricity Meter Readings">
-      <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 text-xs font-semibold text-gray-500 uppercase mb-1 px-1">
+      <div className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 text-xs font-semibold text-muted-foreground uppercase mb-1 px-1">
         <span>Meter Name</span>
         <span>Prev Reading</span>
         <span>Curr Reading</span>
@@ -64,16 +64,16 @@ export default function ElectricitySection({
               <button
                 type="button"
                 onClick={() => onRemove(meter.id)}
-                className="text-red-400 hover:text-red-600 text-lg leading-none font-bold px-1"
+                className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
                 title="Remove meter"
               >
                 ×
               </button>
             </div>
-            {err && <p className="text-red-500 text-xs pl-1">{err}</p>}
+            {err && <p className="field-error pl-1">{err}</p>}
             {consumed !== null && (
-              <p className="text-xs text-gray-500 pl-1">
-                {consumed} units × Rs.{electricityRate} = <span className="font-medium text-gray-700">Rs. {cost?.toFixed(2)}</span>
+              <p className="text-xs text-muted-foreground pl-1">
+                {consumed} units × Rs.{electricityRate} = <span className="font-medium text-foreground">Rs. {cost?.toFixed(2)}</span>
               </p>
             )}
           </div>
@@ -83,7 +83,7 @@ export default function ElectricitySection({
       <button
         type="button"
         onClick={onAdd}
-        className="text-sm text-[#2980b9] hover:underline mt-1"
+        className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2 mt-1"
       >
         + Add Meter
       </button>

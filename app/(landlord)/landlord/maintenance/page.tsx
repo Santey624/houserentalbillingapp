@@ -3,6 +3,7 @@ import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import { updateMaintenanceStatusAction } from '@/app/actions/maintenance'
 import { StatusBadge } from '@/components/shared/StatusBadge'
+import { Wrench, ExternalLink } from 'lucide-react'
 
 const STATUS_OPTIONS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const
 
@@ -27,45 +28,57 @@ export default async function LandlordMaintenancePage() {
   const resolved = requests.filter((r: (typeof requests)[number]) => r.status === 'RESOLVED' || r.status === 'CLOSED')
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl">
-      <h1 className="font-heading text-3xl font-bold text-[#2d2d2d] mb-6">Maintenance 🔧</h1>
+    <div className="p-5 sm:p-8 max-w-3xl">
+      <div className="mb-8">
+        <h1 className="text-4xl text-foreground mb-1">Maintenance</h1>
+        <p className="text-sm text-muted-foreground">{requests.length} total request{requests.length !== 1 ? 's' : ''}</p>
+      </div>
 
       {requests.length === 0 && (
-        <div className="text-center py-16 text-[#2d2d2d]/40">
-          <div className="text-5xl mb-3 animate-bounce-gentle inline-block">🔧</div>
-          <p className="italic">No maintenance requests.</p>
+        <div className="card-modern flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <Wrench size={24} className="text-muted-foreground" />
+          </div>
+          <p className="font-medium text-foreground">No maintenance requests</p>
+          <p className="text-sm text-muted-foreground mt-1">All clear!</p>
         </div>
       )}
 
       {open.length > 0 && (
         <div className="mb-8">
-          <h2 className="font-heading text-xl font-bold text-[#2d2d2d] mb-4">Active ({open.length})</h2>
+          <h2 className="text-lg font-semibold text-foreground mb-4">
+            Active <span className="text-sm font-normal text-muted-foreground ml-1">({open.length})</span>
+          </h2>
           <div className="space-y-4">
             {open.map((req: (typeof open)[number]) => (
-              <div key={req.id} className="card-sketch p-5">
-                <div className="flex items-start justify-between gap-3 mb-2">
+              <div key={req.id} className="card-modern p-6">
+                <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
-                    <h3 className="font-heading text-lg font-bold text-[#2d2d2d] truncate">{req.title}</h3>
-                    <p className="text-xs text-[#2d2d2d]/50">
-                      {req.tenant.displayName} · {new Date(req.createdAt).toLocaleDateString()}
+                    <h3 className="font-semibold text-foreground truncate">{req.title}</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {req.tenant.displayName} &middot; {new Date(req.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <StatusBadge status={req.status} />
                 </div>
-                <p className="text-sm text-[#2d2d2d]/70 mb-4">{req.description}</p>
+                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{req.description}</p>
                 {req.photoUrl && (
-                  <a href={req.photoUrl} target="_blank" rel="noopener noreferrer"
-                    className="text-[#2d5da1] text-sm hover:underline underline-offset-2 block mb-4">
-                    View photo →
+                  <a
+                    href={req.photoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2 mb-4"
+                  >
+                    View photo <ExternalLink size={12} />
                   </a>
                 )}
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
                   {STATUS_OPTIONS.map((s) =>
                     s !== req.status && (
                       <form key={s} action={updateMaintenanceStatusAction.bind(null, req.id, s, undefined)}>
                         <button
                           type="submit"
-                          className="text-xs border-[2px] border-[#2d2d2d] text-[#2d2d2d] px-3 py-1.5 hover:bg-[#e5e0d8] transition-colors wobbly-sm"
+                          className="btn-secondary py-1.5 px-3 text-xs"
                         >
                           Mark {s.replace('_', ' ')}
                         </button>
@@ -81,15 +94,15 @@ export default async function LandlordMaintenancePage() {
 
       {resolved.length > 0 && (
         <div>
-          <h2 className="font-heading text-xl font-bold text-[#2d2d2d] mb-4">Resolved</h2>
-          <div className="card-sketch overflow-hidden">
-            <div className="divide-y-[2px] divide-dashed divide-[#2d2d2d]/15">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Resolved</h2>
+          <div className="card-modern overflow-hidden">
+            <div className="divide-y divide-border">
               {resolved.map((req: (typeof resolved)[number]) => (
-                <div key={req.id} className="flex items-center justify-between gap-3 px-5 py-4">
+                <div key={req.id} className="list-row">
                   <div className="min-w-0">
-                    <p className="font-medium text-sm text-[#2d2d2d] truncate">{req.title}</p>
-                    <p className="text-xs text-[#2d2d2d]/50">
-                      {req.tenant.displayName} · {new Date(req.createdAt).toLocaleDateString()}
+                    <p className="font-medium text-sm text-foreground truncate">{req.title}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {req.tenant.displayName} &middot; {new Date(req.createdAt).toLocaleDateString()}
                     </p>
                   </div>
                   <StatusBadge status={req.status} />

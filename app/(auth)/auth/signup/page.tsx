@@ -6,10 +6,10 @@ export default async function SignUpPage(props: {
   const { role } = await props.searchParams
   return (
     <>
-      <h1 className="font-heading text-3xl font-bold text-[#2d2d2d] rotate-1 inline-block mb-1">
-        Create account ✨
-      </h1>
-      <p className="text-[#2d2d2d]/50 text-sm mb-7">join the AKS Rental family</p>
+      <div className="mb-8">
+        <h1 className="text-3xl text-foreground mb-1.5">Create your account</h1>
+        <p className="text-sm text-muted-foreground">Join the AKS Rental platform today</p>
+      </div>
       <SignUpForm defaultRole={role === 'LANDLORD' ? 'LANDLORD' : 'TENANT'} />
     </>
   )

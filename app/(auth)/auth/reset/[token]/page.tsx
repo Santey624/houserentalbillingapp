@@ -6,8 +6,10 @@ export default async function ResetPasswordPage(props: {
   const { token } = await props.params
   return (
     <>
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Reset password</h1>
-      <p className="text-gray-500 text-sm mb-6">Enter your new password below.</p>
+      <div className="mb-8">
+        <h1 className="text-3xl text-foreground mb-1.5">Reset password</h1>
+        <p className="text-sm text-muted-foreground">Enter your new password below</p>
+      </div>
       <ResetPasswordForm token={token} />
     </>
   )

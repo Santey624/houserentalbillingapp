@@ -21,10 +21,10 @@ export default function NepaliMonthPicker({
               key={i}
               type="button"
               onClick={() => onToggle(i)}
-              className={`text-xs px-2 py-1.5 rounded border transition-colors ${
+              className={`text-xs px-2 py-1.5 rounded-lg border transition-colors ${
                 isSelected
-                  ? "bg-[#2980b9] text-white border-[#2980b9]"
-                  : "bg-white text-gray-700 border-gray-300 hover:border-[#2980b9]"
+                  ? "gradient-bg text-white border-transparent"
+                  : "bg-card text-foreground border-border hover:border-accent/40"
               }`}
             >
               {month}
@@ -32,7 +32,7 @@ export default function NepaliMonthPicker({
           );
         })}
       </div>
-      {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+      {error && <p className="field-error mt-1">{error}</p>}
     </div>
   );
 }

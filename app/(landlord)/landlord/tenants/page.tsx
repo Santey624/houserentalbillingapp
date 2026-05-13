@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { Users, FileText } from 'lucide-react'
 
 export default async function TenantsPage() {
   const session = await auth()
@@ -24,41 +25,51 @@ export default async function TenantsPage() {
   })
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-3xl">
-      <h1 className="font-heading text-3xl font-bold text-[#2d2d2d] mb-6">
-        Tenants 👥 ({tenancies.length})
-      </h1>
+    <div className="p-5 sm:p-8 max-w-3xl">
+      <div className="mb-8">
+        <h1 className="text-4xl text-foreground mb-1">Tenants</h1>
+        <p className="text-sm text-muted-foreground">{tenancies.length} active tenant{tenancies.length !== 1 ? 's' : ''}</p>
+      </div>
 
       {tenancies.length === 0 ? (
-        <div className="text-center py-16 text-[#2d2d2d]/40">
-          <div className="text-5xl mb-3 animate-bounce-gentle inline-block">👥</div>
-          <p className="italic mb-2">No active tenants yet.</p>
-          <Link href="/landlord/join-requests" className="text-[#2d5da1] text-sm hover:underline underline-offset-2">
-            Review join requests →
+        <div className="card-modern flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+            <Users size={24} className="text-muted-foreground" />
+          </div>
+          <p className="font-medium text-foreground">No active tenants yet</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-5">Approve join requests to add tenants</p>
+          <Link href="/landlord/join-requests" className="text-accent text-sm hover:underline underline-offset-2">
+            Review join requests
           </Link>
         </div>
       ) : (
-        <div className="card-sketch overflow-hidden">
-          <div className="divide-y-[2px] divide-dashed divide-[#2d2d2d]/15">
+        <div className="card-modern overflow-hidden">
+          <div className="divide-y divide-border">
             {tenancies.map((t: (typeof tenancies)[number]) => (
-              <div key={t.id} className="flex items-start justify-between gap-4 px-5 py-4 sm:items-center">
-                <div className="min-w-0">
-                  <div className="font-medium text-[#2d2d2d] text-sm truncate">{t.tenant.displayName}</div>
-                  <div className="text-xs text-[#2d2d2d]/50 truncate">
-                    {t.tenant.user.email}
+              <div key={t.id} className="list-row">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-semibold text-muted-foreground">
+                      {t.tenant.displayName.charAt(0).toUpperCase()}
+                    </span>
                   </div>
-                  <div className="text-xs text-[#2d2d2d]/50">
-                    {t.unit.building.name}, Unit {t.unit.unitNumber} · since {new Date(t.startDate).toLocaleDateString()}
+                  <div className="min-w-0">
+                    <div className="font-medium text-sm text-foreground truncate">{t.tenant.displayName}</div>
+                    <div className="text-xs text-muted-foreground truncate">{t.tenant.user.email}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {t.unit.building.name}, Unit {t.unit.unitNumber} &middot; since {new Date(t.startDate).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
-                  <span className="text-xs text-[#2d2d2d]/50 hidden sm:block">
-                    {t._count.invoices} invoices
+                  <span className="text-xs text-muted-foreground hidden sm:block">
+                    {t._count.invoices} invoice{t._count.invoices !== 1 ? 's' : ''}
                   </span>
                   <Link
                     href={`/landlord/invoices/new?tenancyId=${t.id}&unitId=${t.unitId}`}
-                    className="btn-sketch inline-block text-xs bg-[#2d2d2d] text-white px-3 py-1.5 border-[2px] border-[#2d2d2d] hover:bg-[#ff4d4d] hover:border-[#ff4d4d]"
+                    className="btn-secondary py-1.5 px-3 text-xs"
                   >
+                    <FileText size={12} />
                     Invoice
                   </Link>
                 </div>

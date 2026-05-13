@@ -32,9 +32,9 @@ export default function GenerateButton({ onBeforeGenerate }: Props) {
     <button
       type="button"
       onClick={handleClick}
-      className="w-full bg-[#0f3460] hover:bg-[#1a4a80] text-white font-bold py-3 px-6 rounded-lg text-base tracking-wide transition-colors mt-2"
+      className="btn-primary w-full h-12 text-base mt-2"
     >
-      GENERATE PDF INVOICE
+      Generate PDF Invoice
     </button>
   );
 }

@@ -20,18 +20,12 @@ interface AppSidebarProps {
   rootHref: string
 }
 
-const WOBBLE = { borderRadius: '12px 3px 10px 3px / 3px 10px 3px 12px' }
-const LABEL_WOBBLE = { borderRadius: '16px 4px 14px 4px / 4px 14px 4px 16px' }
-const ROTATIONS = ['-0.5deg', '0.5deg', '-0.3deg', '0.7deg', '-0.6deg', '0.4deg', '-0.4deg']
-
 export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
-  // Close drawer on route change
   useEffect(() => { setOpen(false) }, [pathname])
 
-  // Lock body scroll while drawer is open
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
@@ -39,7 +33,7 @@ export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarPr
 
   const NavLinks = ({ onClick }: { onClick?: () => void }) => (
     <>
-      {navItems.map((item, i) => {
+      {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
           (item.href !== rootHref && pathname.startsWith(item.href))
@@ -49,15 +43,9 @@ export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarPr
             key={item.href}
             href={item.href}
             onClick={onClick}
-            className={cn(
-              'nav-item-sketch flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium border-[2px]',
-              isActive
-                ? 'bg-[#ff4d4d] text-white border-[#2d2d2d] shadow-hard-sm'
-                : 'text-[#2d2d2d] border-transparent hover:bg-[#e5e0d8] hover:border-[#2d2d2d]',
-            )}
-            style={isActive ? { transform: `rotate(${ROTATIONS[i % ROTATIONS.length]})` } : undefined}
+            className={cn('nav-item-modern', isActive && 'active')}
           >
-            <Icon size={16} strokeWidth={2.5} className="flex-shrink-0" />
+            <Icon size={16} strokeWidth={2} className="flex-shrink-0" />
             <span>{item.label}</span>
           </Link>
         )
@@ -70,60 +58,66 @@ export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarPr
       <Link
         href="/notifications"
         onClick={onClick}
-        className="nav-item-sketch flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-[#2d2d2d]/60 border-[2px] border-transparent hover:text-[#2d2d2d] hover:bg-[#e5e0d8] hover:border-[#2d2d2d] w-full"
+        className="nav-item-modern"
       >
-        <Bell size={16} strokeWidth={2.5} className="flex-shrink-0" />
+        <Bell size={16} strokeWidth={2} className="flex-shrink-0" />
         <span>Notifications</span>
       </Link>
       <button
         onClick={() => { onClick?.(); signOut({ callbackUrl: '/' }) }}
-        className="nav-item-sketch flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-[#ff4d4d] border-[2px] border-transparent hover:bg-[#ff4d4d]/10 hover:border-[#ff4d4d] text-left w-full"
+        className="nav-item-modern w-full text-left hover:!bg-red-50 hover:!text-red-600"
       >
-        <LogOut size={16} strokeWidth={2.5} className="flex-shrink-0" />
+        <LogOut size={16} strokeWidth={2} className="flex-shrink-0" />
         <span>Sign out</span>
       </button>
     </>
   )
 
+  const SidebarBrand = () => (
+    <div className="flex items-center gap-3">
+      <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center flex-shrink-0 shadow-sm">
+        <span className="text-white text-sm font-bold">A</span>
+      </div>
+      <div className="min-w-0">
+        <p className="font-semibold text-sm text-foreground truncate">{title}</p>
+        <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+      </div>
+    </div>
+  )
+
   return (
     <>
       {/* ── Mobile top bar ─────────────────────────────────────── */}
-      <header className="md:hidden sticky top-0 z-40 bg-[#fdfbf7] border-b-[3px] border-[#2d2d2d] flex items-center justify-between px-4 py-3">
-        <span
-          className="inline-block bg-[#ff4d4d] text-white px-3 py-1 border-[2px] border-[#2d2d2d] shadow-hard-sm font-heading text-base font-bold"
-          style={LABEL_WOBBLE}
-        >
-          ✏️ {title}
-        </span>
+      <header className="md:hidden sticky top-0 z-40 bg-card border-b border-border flex items-center justify-between px-4 py-3">
+        <Link href={rootHref}>
+          <SidebarBrand />
+        </Link>
         <button
           onClick={() => setOpen(!open)}
           aria-label={open ? 'Close menu' : 'Open menu'}
-          className="p-2 border-[2px] border-[#2d2d2d] bg-white shadow-hard-sm transition-transform active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-          style={WOBBLE}
+          className="p-2 rounded-lg border border-border bg-card hover:bg-muted transition-colors"
         >
           {open
-            ? <X size={18} strokeWidth={2.5} />
-            : <Menu size={18} strokeWidth={2.5} />}
+            ? <X size={18} strokeWidth={2} />
+            : <Menu size={18} strokeWidth={2} />}
         </button>
       </header>
 
-      {/* ── Mobile drawer overlay ──────────────────────────────── */}
+      {/* ── Mobile drawer ──────────────────────────────────────── */}
       {open && (
         <div className="md:hidden fixed inset-0 z-30" style={{ top: 57 }}>
-          {/* backdrop */}
           <div
-            className="absolute inset-0 bg-[#2d2d2d]/30"
+            className="absolute inset-0 bg-foreground/20 backdrop-blur-sm"
             onClick={() => setOpen(false)}
           />
-          {/* panel */}
-          <div className="relative w-72 max-w-[85vw] h-full bg-[#fdfbf7] border-r-[3px] border-[#2d2d2d] flex flex-col shadow-hard overflow-y-auto">
-            <div className="px-4 py-3 border-b-[2px] border-dashed border-[#2d2d2d]/25">
-              <p className="text-xs text-[#2d2d2d]/50 italic">{subtitle}</p>
+          <div className="relative w-72 max-w-[85vw] h-full bg-card border-r border-border flex flex-col shadow-xl overflow-y-auto">
+            <div className="px-4 py-4 border-b border-border">
+              <SidebarBrand />
             </div>
-            <nav className="flex-1 flex flex-col gap-0.5 px-3 py-3">
+            <nav className="flex-1 flex flex-col gap-0.5 px-3 py-4">
               <NavLinks onClick={() => setOpen(false)} />
             </nav>
-            <div className="flex flex-col gap-0.5 border-t-[2px] border-dashed border-[#2d2d2d]/25 px-3 py-3">
+            <div className="flex flex-col gap-0.5 border-t border-border px-3 py-4">
               <FooterLinks onClick={() => setOpen(false)} />
             </div>
           </div>
@@ -131,20 +125,16 @@ export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarPr
       )}
 
       {/* ── Desktop sidebar ────────────────────────────────────── */}
-      <aside className="hidden md:flex md:min-h-screen md:w-60 lg:w-64 md:flex-col bg-[#fdfbf7] border-r-[3px] border-[#2d2d2d] flex-shrink-0">
-        <div className="px-4 py-5 border-b-[2px] border-dashed border-[#2d2d2d]/25">
-          <div
-            className="inline-block bg-[#ff4d4d] text-white px-4 py-1.5 border-[3px] border-[#2d2d2d] shadow-hard-sm"
-            style={LABEL_WOBBLE}
-          >
-            <span className="font-heading text-lg font-bold">✏️ {title}</span>
-          </div>
-          <p className="text-xs text-[#2d2d2d]/50 mt-2 ml-1 italic">{subtitle}</p>
+      <aside className="hidden md:flex md:min-h-screen md:w-60 lg:w-64 md:flex-col bg-card border-r border-border flex-shrink-0">
+        <div className="px-4 py-5 border-b border-border">
+          <Link href={rootHref}>
+            <SidebarBrand />
+          </Link>
         </div>
         <nav className="flex-1 flex flex-col gap-0.5 px-3 py-4">
           <NavLinks />
         </nav>
-        <div className="flex flex-col gap-0.5 border-t-[2px] border-dashed border-[#2d2d2d]/25 px-3 py-4">
+        <div className="flex flex-col gap-0.5 border-t border-border px-3 py-4">
           <FooterLinks />
         </div>
       </aside>

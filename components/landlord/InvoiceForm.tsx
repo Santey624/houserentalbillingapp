@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { createInvoiceAction } from '@/app/actions/invoices'
 import { NEPALI_MONTHS } from '@/lib/constants'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
+import { Plus, Trash2, Zap, FileText } from 'lucide-react'
 
 interface Props {
   tenancyId?: string
@@ -14,6 +15,9 @@ interface Props {
   tenantName: string
   defaultRate: number
 }
+
+const inputCls = 'input-modern'
+const labelCls = 'field-label'
 
 export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, directBill, unitId, tenantName, defaultRate }: Props) {
   const [isPending, startTransition] = useTransition()
@@ -70,154 +74,164 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">{error}</div>}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <div className="alert-error">{error}</div>
+      )}
 
       {/* Basic Details */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900">Invoice Details</h3>
+      <div className="card-modern p-6 space-y-4">
+        <div className="flex items-center gap-2 mb-1">
+          <FileText size={16} className="text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">Invoice Details</h3>
+        </div>
         <input type="hidden" name="tenantName" value={tenantName} />
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Billing Month</label>
-            <select name="nepaliMonth" required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]">
+            <label className={labelCls}>Billing Month</label>
+            <select name="nepaliMonth" required className="select-modern">
               {NEPALI_MONTHS.map((m, i) => (
                 <option key={i} value={m.split(' (')[0]}>{m}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nepali Year</label>
-            <input name="nepaliYear" type="text" defaultValue="2082" required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+            <label className={labelCls}>Nepali Year</label>
+            <input name="nepaliYear" type="text" defaultValue="2082" required className={inputCls} />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
-            <input name="invoiceDate" type="date" defaultValue={today} required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+            <label className={labelCls}>Invoice Date</label>
+            <input name="invoiceDate" type="date" defaultValue={today} required className={inputCls} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Due Date (optional)</label>
-            <input name="dueDate" type="date" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+            <label className={labelCls}>Due Date (optional)</label>
+            <input name="dueDate" type="date" className={inputCls} />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Rent (Rs.)</label>
-            <input name="rentCost" type="number" step="0.01" min="0" required defaultValue="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+            <label className={labelCls}>Rent (Rs.)</label>
+            <input name="rentCost" type="number" step="0.01" min="0" required defaultValue="0" className={inputCls} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Service Charge (Rs.)</label>
-            <input name="serviceCharge" type="number" step="0.01" min="0" defaultValue="0" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+            <label className={labelCls}>Service Charge (Rs.)</label>
+            <input name="serviceCharge" type="number" step="0.01" min="0" defaultValue="0" className={inputCls} />
           </div>
         </div>
       </div>
 
       {/* Electricity Meters */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div className="card-modern p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-gray-900">Electricity Meters</h3>
-          <span className="text-xs text-gray-400">Rate: Rs.{defaultRate}/unit</span>
+          <div className="flex items-center gap-2">
+            <Zap size={16} className="text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">Electricity Meters</h3>
+          </div>
+          <span className="font-mono text-xs text-muted-foreground">Rs.{defaultRate}/unit</span>
         </div>
         {meters.map((m) => (
           <div key={m.id} className="grid grid-cols-2 gap-3 items-end sm:grid-cols-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Meter Name</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Meter Name</label>
               <input
                 value={m.name}
                 onChange={(e) => updateMeter(m.id, 'name', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Previous</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Previous</label>
               <input
                 type="number"
                 value={m.prev}
                 onChange={(e) => updateMeter(m.id, 'prev', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Current</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Current</label>
               <input
                 type="number"
                 value={m.curr}
                 onChange={(e) => updateMeter(m.id, 'curr', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className={inputCls}
               />
             </div>
             <button
               type="button"
               onClick={() => removeMeter(m.id)}
-              className="text-red-400 hover:text-red-600 text-sm pb-2"
+              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
             >
-              Remove
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
         <button
           type="button"
           onClick={addMeter}
-          className="text-[#0f3460] text-sm hover:underline"
+          className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2"
         >
-          + Add meter
+          <Plus size={13} />
+          Add meter
         </button>
       </div>
 
       {/* Additional Costs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
-        <h3 className="font-semibold text-gray-900">Additional Costs</h3>
+      <div className="card-modern p-6 space-y-4">
+        <h3 className="font-semibold text-foreground">Additional Costs</h3>
         {costs.map((c) => (
           <div key={c.id} className="grid grid-cols-2 gap-3 items-end sm:grid-cols-4">
             <div className="col-span-2">
-              <label className="block text-xs text-gray-500 mb-1">Description</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Description</label>
               <input
                 value={c.description}
                 onChange={(e) => updateCost(c.id, 'description', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className={inputCls}
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Amount (Rs.)</label>
+              <label className="text-xs text-muted-foreground mb-1 block">Amount (Rs.)</label>
               <input
                 type="number"
                 step="0.01"
                 value={c.amount}
                 onChange={(e) => updateCost(c.id, 'amount', e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]"
+                className={inputCls}
               />
             </div>
             <button
               type="button"
               onClick={() => removeCost(c.id)}
-              className="text-red-400 hover:text-red-600 text-sm pb-2"
+              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
             >
-              Remove
+              <Trash2 size={14} />
             </button>
           </div>
         ))}
         <button
           type="button"
           onClick={addCost}
-          className="text-[#0f3460] text-sm hover:underline"
+          className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2"
         >
-          + Add line item
+          <Plus size={13} />
+          Add line item
         </button>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
-        <textarea name="notes" rows={2} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+        <label className={labelCls}>Notes (optional)</label>
+        <textarea name="notes" rows={2} className="textarea-modern" placeholder="Any additional notes..." />
       </div>
 
       <button
         type="submit"
         disabled={isPending}
-        className="w-full bg-[#0f3460] text-white py-3 rounded-xl font-semibold hover:bg-[#0f3460]/90 transition disabled:opacity-60"
+        className="btn-primary w-full h-12 text-base"
       >
         {isPending ? 'Generating Invoice...' : 'Generate Invoice'}
       </button>

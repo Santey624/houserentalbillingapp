@@ -3,40 +3,54 @@
 import { useActionState } from 'react'
 import { createBuildingAction } from '@/app/actions/buildings'
 import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 
 export default function NewBuildingPage() {
   const [state, action, pending] = useActionState(createBuildingAction, null)
 
   return (
-    <div className="p-8 max-w-xl">
-      <div className="flex items-center gap-3 mb-6">
-        <Link href="/landlord/buildings" className="text-gray-400 hover:text-gray-600 text-sm">← Buildings</Link>
-      </div>
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">New Building</h1>
+    <div className="p-5 sm:p-8 max-w-xl">
+      <Link href="/landlord/buildings" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6">
+        <ChevronLeft size={14} />
+        Buildings
+      </Link>
 
-      <form action={action} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+      <div className="mb-8">
+        <h1 className="text-4xl text-foreground mb-1">New Building</h1>
+        <p className="text-sm text-muted-foreground">Add a new property to your portfolio</p>
+      </div>
+
+      <form action={action} className="card-modern p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Building Name</label>
-          <input name="name" type="text" required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
-          {state?.errors?.name && <p className="text-red-600 text-xs mt-1">{state.errors.name[0]}</p>}
+          <label className="field-label">Building Name</label>
+          <input name="name" type="text" required className="input-modern" />
+          {state?.errors?.name && <p className="field-error">{state.errors.name[0]}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-          <input name="address" type="text" required className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
-          {state?.errors?.address && <p className="text-red-600 text-xs mt-1">{state.errors.address[0]}</p>}
+          <label className="field-label">Address</label>
+          <input name="address" type="text" required className="input-modern" />
+          {state?.errors?.address && <p className="field-error">{state.errors.address[0]}</p>}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Contact</label>
-          <input name="contact" type="text" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0f3460]" />
+          <label className="field-label">Contact (optional)</label>
+          <input name="contact" type="text" className="input-modern" />
         </div>
-        <div className="flex items-center gap-2">
-          <input name="isOpen" type="checkbox" defaultChecked id="isOpen" className="rounded" />
-          <label htmlFor="isOpen" className="text-sm text-gray-700">Open to new tenants</label>
+        <div className="flex items-center gap-3 py-1">
+          <input
+            name="isOpen"
+            type="checkbox"
+            defaultChecked
+            id="isOpen"
+            className="w-4 h-4 rounded border-border accent-accent cursor-pointer"
+          />
+          <label htmlFor="isOpen" className="text-sm text-foreground cursor-pointer select-none">
+            Open to new tenants
+          </label>
         </div>
         <button
           type="submit"
           disabled={pending}
-          className="w-full bg-[#0f3460] text-white py-2.5 rounded-lg font-semibold text-sm hover:bg-[#0f3460]/90 transition disabled:opacity-60"
+          className="btn-primary w-full h-11 mt-2"
         >
           {pending ? 'Creating...' : 'Create Building'}
         </button>

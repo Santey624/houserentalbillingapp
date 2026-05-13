@@ -27,9 +27,9 @@ export default function BillCard({ data, filename }: Props) {
         <button
           type="button"
           disabled={loading}
-          className="w-full border-2 border-[#0f3460] text-[#0f3460] py-3 rounded-xl font-semibold hover:bg-[#0f3460]/5 transition disabled:opacity-60"
+          className="btn-primary w-full h-12 disabled:opacity-60"
         >
-          {loading ? 'Preparing PDF...' : '⬇ Download Invoice PDF'}
+          {loading ? 'Preparing PDF...' : 'Download Invoice PDF'}
         </button>
       )}
     </PDFDownloadLink>
