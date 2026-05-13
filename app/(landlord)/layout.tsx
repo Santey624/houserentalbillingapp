@@ -1,9 +1,9 @@
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import LandlordSidebar from '@/components/landlord/Sidebar'
 
 export default async function LandlordLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user) redirect('/auth/signin')
   if (session.user.role !== 'LANDLORD') redirect('/tenant')
 

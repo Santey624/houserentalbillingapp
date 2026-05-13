@@ -1,30 +1,23 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
+import { getLandlord } from '@/lib/session'
 import Link from 'next/link'
 import { Building2, Plus } from 'lucide-react'
 
 export default async function BuildingsPage() {
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
-  const landlord = await db.landlord.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      buildings: {
-        include: { _count: { select: { units: true } } },
-        orderBy: { createdAt: 'desc' },
-      },
-    },
+  const buildings = await db.building.findMany({
+    where: { landlordId: landlord.id },
+    include: { _count: { select: { units: true } } },
+    orderBy: { createdAt: 'desc' },
   })
-  if (!landlord) redirect('/auth/signin')
 
   return (
     <div className="p-5 sm:p-8 max-w-5xl">
       <div className="flex flex-col gap-3 mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-4xl text-foreground mb-1">Buildings</h1>
-          <p className="text-sm text-muted-foreground">{landlord.buildings.length} building{landlord.buildings.length !== 1 ? 's' : ''}</p>
+          <p className="text-sm text-muted-foreground">{buildings.length} building{buildings.length !== 1 ? 's' : ''}</p>
         </div>
         <Link href="/landlord/buildings/new" className="btn-primary self-start">
           <Plus size={14} />
@@ -32,7 +25,7 @@ export default async function BuildingsPage() {
         </Link>
       </div>
 
-      {landlord.buildings.length === 0 ? (
+      {buildings.length === 0 ? (
         <div className="card-modern flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
             <Building2 size={24} className="text-muted-foreground" />
@@ -46,7 +39,7 @@ export default async function BuildingsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {landlord.buildings.map((b: any) => (
+          {buildings.map((b: any) => (
             <Link
               key={b.id}
               href={`/landlord/buildings/${b.id}`}

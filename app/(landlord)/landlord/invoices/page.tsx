@@ -1,6 +1,5 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
+import { getLandlord } from '@/lib/session'
 import Link from 'next/link'
 import { formatRs } from '@/lib/utils'
 import { StatusBadge } from '@/components/shared/StatusBadge'
@@ -10,11 +9,7 @@ export default async function InvoicesPage(props: {
   searchParams: Promise<{ status?: string }>
 }) {
   const { status } = await props.searchParams
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
   const invoices = await db.invoice.findMany({
     where: {

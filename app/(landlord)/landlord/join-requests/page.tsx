@@ -1,16 +1,11 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
+import { getLandlord } from '@/lib/session'
 import { approveJoinRequestAction, rejectJoinRequestAction } from '@/app/actions/join-requests'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Mail } from 'lucide-react'
 
 export default async function JoinRequestsPage() {
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
   const requests = await db.joinRequest.findMany({
     where: { building: { landlordId: landlord.id } },

@@ -1,6 +1,5 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
+import { getLandlord } from '@/lib/session'
 import { updateMaintenanceStatusAction } from '@/app/actions/maintenance'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Wrench, ExternalLink } from 'lucide-react'
@@ -8,11 +7,7 @@ import { Wrench, ExternalLink } from 'lucide-react'
 const STATUS_OPTIONS = ['OPEN', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'] as const
 
 export default async function LandlordMaintenancePage() {
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
   const requests = await db.maintenanceRequest.findMany({
     where: {

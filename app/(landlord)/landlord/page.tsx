@@ -1,5 +1,5 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getLandlord } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatRs } from '@/lib/utils'
@@ -7,30 +7,16 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { Building2, Mail, CreditCard, Wrench, Plus } from 'lucide-react'
 
 export default async function LandlordDashboard() {
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      buildings: {
-        include: { units: { include: { tenancies: { where: { status: 'ACTIVE' } } } } },
-      },
-    },
-  })
-
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
   if (!landlord.onboardingDone) redirect('/landlord/onboarding')
 
-  const [pendingJoinRequests, pendingPayments, openMaintenance, recentInvoices] = await Promise.all([
-    db.joinRequest.count({
-      where: { building: { landlordId: landlord.id }, status: 'PENDING' },
-    }),
+  const [buildingCount, totalUnits, occupiedUnits, pendingJoinRequests, pendingPayments, openMaintenance, recentInvoices] = await Promise.all([
+    db.building.count({ where: { landlordId: landlord.id } }),
+    db.unit.count({ where: { building: { landlordId: landlord.id } } }),
+    db.tenancy.count({ where: { status: 'ACTIVE', unit: { building: { landlordId: landlord.id } } } }),
+    db.joinRequest.count({ where: { building: { landlordId: landlord.id }, status: 'PENDING' } }),
     db.invoice.count({
-      where: {
-        tenancy: { unit: { building: { landlordId: landlord.id } } },
-        status: 'PAYMENT_SUBMITTED',
-      },
+      where: { tenancy: { unit: { building: { landlordId: landlord.id } } }, status: 'PAYMENT_SUBMITTED' },
     }),
     db.maintenanceRequest.count({
       where: {
@@ -42,28 +28,21 @@ export default async function LandlordDashboard() {
       where: { tenancy: { unit: { building: { landlordId: landlord.id } } } },
       orderBy: { createdAt: 'desc' },
       take: 5,
+      select: { id: true, invoiceNumber: true, tenantName: true, nepaliMonth: true, nepaliYear: true, grandTotal: true, status: true },
     }),
   ])
-
-  const totalUnits = landlord.buildings.reduce(
-    (s: number, b: (typeof landlord.buildings)[number]) => s + b.units.length, 0,
-  )
-  const occupiedUnits = landlord.buildings.reduce(
-    (s: number, b: (typeof landlord.buildings)[number]) =>
-      s + b.units.filter((u: (typeof b.units)[number]) => u.tenancies.length > 0).length, 0,
-  )
 
   const stats = [
     {
       label: 'Buildings',
-      value: landlord.buildings.length,
+      value: buildingCount,
       href: '/landlord/buildings',
       icon: Building2,
       accent: false,
     },
     {
       label: 'Units occupied',
-      value: `${occupiedUnits}/${totalUnits}`,
+      value: `${occupiedUnits} / ${totalUnits}`,
       href: '/landlord/buildings',
       icon: Building2,
       accent: false,

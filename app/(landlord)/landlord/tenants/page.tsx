@@ -1,15 +1,10 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { redirect } from 'next/navigation'
+import { getLandlord } from '@/lib/session'
 import Link from 'next/link'
 import { Users, FileText } from 'lucide-react'
 
 export default async function TenantsPage() {
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
   const tenancies = await db.tenancy.findMany({
     where: {

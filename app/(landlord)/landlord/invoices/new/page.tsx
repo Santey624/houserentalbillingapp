@@ -1,5 +1,5 @@
-import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
+import { getLandlord } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InvoiceForm from '@/components/landlord/InvoiceForm'
@@ -15,14 +15,7 @@ export default async function NewInvoicePage(props: {
   searchParams: Promise<{ tenancyId?: string; unitId?: string; joinRequestId?: string; tenantId?: string; manualTenantName?: string }>
 }) {
   const { tenancyId, unitId, joinRequestId, tenantId, manualTenantName } = await props.searchParams
-  const session = await auth()
-  if (!session?.user) redirect('/auth/signin')
-
-  const landlord = await db.landlord.findUnique({
-    where: { userId: session.user.id },
-    select: { id: true, electricityRate: true },
-  })
-  if (!landlord) redirect('/auth/signin')
+  const { landlord } = await getLandlord()
 
   if (tenancyId) {
     const tenancy = await db.tenancy.findFirst({
