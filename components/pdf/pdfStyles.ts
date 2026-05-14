@@ -1,258 +1,292 @@
 import { StyleSheet } from "@react-pdf/renderer";
 
 export const COLORS = {
-  CRIMSON:      "#8b1a1a",   // primary — Nepali flag red
-  CRIMSON_DARK: "#6b1414",
-  SAFFRON:      "#c8973a",   // accent — used ≤ 3 times
-  CREAM:        "#faf8f4",   // warm paper background
-  WARM_WHITE:   "#f3ede3",   // card / alt-row fill
-  INK:          "#1c1208",   // primary text
-  MUTED:        "#6b5c45",   // secondary text
-  BORDER:       "#d4c4a8",   // hairline rules
-  WHITE:        "#ffffff",
+  BRAND: "#071a33",
+  ACCENT: "#f5a623",
+  BLUE: "#2563eb",
+  INK: "#111827",
+  MUTED: "#64748b",
+  SOFT: "#f8fafc",
+  PANEL: "#eef2f7",
+  BORDER: "#d8dee8",
+  WHITE: "#ffffff",
 };
 
 export const styles = StyleSheet.create({
-  // ── Page ──────────────────────────────────────────────────────────────────
   page: {
     fontFamily: "DM Sans",
-    fontSize: 9,
+    fontSize: 9.5,
     color: COLORS.INK,
-    backgroundColor: COLORS.CREAM,
-    paddingBottom: 46,
+    backgroundColor: COLORS.WHITE,
+    padding: "28 32 40",
   },
 
-  // ── Header ────────────────────────────────────────────────────────────────
   header: {
-    backgroundColor: COLORS.CRIMSON,
-    padding: "13 16",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  headerLeft: { flex: 1, gap: 3 },
-  headerLandlordName: {
-    fontSize: 20,
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    color: COLORS.WHITE,
-    letterSpacing: 0.4,
-  },
-  headerAddress: { fontSize: 8, color: "#e8c4c4" },
-  headerRight: { alignItems: "flex-end", gap: 3 },
-  headerTitle: {
-    fontSize: 9,
-    fontFamily: "DM Sans",
-    fontWeight: 700,
-    color: COLORS.SAFFRON,
-    letterSpacing: 2.5,
-  },
-  headerInvoiceNum: { fontSize: 7.5, color: "#e8c4c4" },
-  headerDate:       { fontSize: 7.5, color: "#e8c4c4" },
-
-  // ── Billing period — typographic celebration ───────────────────────────────
-  billingPeriodContainer: {
-    padding: "10 16 9",
+    alignItems: "center",
+    paddingBottom: 18,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.BORDER,
-    backgroundColor: COLORS.CREAM,
   },
-  billingPeriodLabel: {
-    fontSize: 6.5,
-    color: COLORS.MUTED,
-    letterSpacing: 2.5,
+  brandBlock: { flex: 1 },
+  logo: { width: 150, height: 49, marginBottom: 6 },
+  brandFallback: {
+    fontSize: 16,
+    fontWeight: 700,
+    color: COLORS.BRAND,
     marginBottom: 3,
   },
-  billingPeriodValue: {
-    fontSize: 22,
-    fontFamily: "Playfair Display",
-    fontStyle: "italic",
-    color: COLORS.CRIMSON,
+  brandTagline: { color: COLORS.MUTED, fontSize: 8 },
+  headerRight: { alignItems: "flex-end" },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 700,
+    color: COLORS.BRAND,
+    letterSpacing: 1.4,
+    marginBottom: 8,
+  },
+  statusBadge: {
+    borderRadius: 999,
+    padding: "4 9",
+    backgroundColor: "#eaf2ff",
+    color: COLORS.BLUE,
+    fontSize: 7,
+    fontWeight: 700,
+    letterSpacing: 0.8,
   },
 
-  // ── Party cards ───────────────────────────────────────────────────────────
-  partyRow: {
+  metaGrid: {
     flexDirection: "row",
+    marginTop: 18,
     gap: 10,
-    padding: "10 16 8",
+  },
+  metaCard: {
+    flex: 1,
+    padding: 10,
+    backgroundColor: COLORS.SOFT,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 4,
+  },
+  metaLabel: {
+    color: COLORS.MUTED,
+    fontSize: 6.8,
+    fontWeight: 700,
+    letterSpacing: 1.2,
+    textTransform: "uppercase",
+    marginBottom: 4,
+  },
+  metaValue: { color: COLORS.INK, fontSize: 10.5, fontWeight: 700 },
+  metaSubValue: { color: COLORS.MUTED, fontSize: 8, marginTop: 2 },
+
+  summaryRow: {
+    flexDirection: "row",
+    marginTop: 16,
+    gap: 14,
   },
   partyCard: {
     flex: 1,
-    padding: "8 10",
-    borderRadius: 2,
+    padding: 13,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 4,
   },
-  partyCardFrom: {
-    backgroundColor: COLORS.WARM_WHITE,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.BORDER,
-  },
-  partyCardTo: {
-    backgroundColor: COLORS.CRIMSON,
-    borderLeftWidth: 3,
-    borderLeftColor: COLORS.SAFFRON,
+  partyCardStrong: {
+    backgroundColor: COLORS.BRAND,
+    borderColor: COLORS.BRAND,
   },
   partyLabel: {
-    fontSize: 6.5,
-    fontWeight: 700,
-    letterSpacing: 2,
-    marginBottom: 4,
-  },
-  partyLabelFrom: { color: COLORS.MUTED },
-  partyLabelTo:   { color: "#e8c4c4" },
-  partyName: {
-    fontSize: 11,
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    marginBottom: 2,
-  },
-  partyNameFrom: { color: COLORS.INK },
-  partyNameTo:   { color: COLORS.WHITE },
-  partyDetail:      { fontSize: 8 },
-  partyDetailFrom:  { color: COLORS.MUTED },
-  partyDetailTo:    { color: "#e8c4c4" },
-
-  // ── Items table ───────────────────────────────────────────────────────────
-  tableContainer: { padding: "0 16 8" },
-  tableHeader: {
-    flexDirection: "row",
-    padding: "5 8",
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.CRIMSON,
-    backgroundColor: COLORS.WARM_WHITE,
-  },
-  tableHeaderText: {
     fontSize: 7,
     fontWeight: 700,
-    color: COLORS.INK,
-    letterSpacing: 1,
+    letterSpacing: 1.4,
+    color: COLORS.MUTED,
+    marginBottom: 8,
+  },
+  partyLabelStrong: { color: "#b8c6d8" },
+  partyName: { fontSize: 13, fontWeight: 700, color: COLORS.INK, marginBottom: 4 },
+  partyNameStrong: { color: COLORS.WHITE },
+  partyDetail: { fontSize: 8.2, color: COLORS.MUTED, lineHeight: 1.4 },
+  partyDetailStrong: { color: "#d8e3f2" },
+
+  sectionTitle: {
+    fontSize: 8,
+    color: COLORS.BRAND,
+    fontWeight: 700,
+    letterSpacing: 1.2,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  table: {
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  tableHeader: {
+    flexDirection: "row",
+    backgroundColor: COLORS.BRAND,
+    padding: "8 10",
+  },
+  tableHeaderText: {
+    color: COLORS.WHITE,
+    fontSize: 7.5,
+    fontWeight: 700,
+    letterSpacing: 0.8,
   },
   tableRow: {
     flexDirection: "row",
-    padding: "5 8",
+    padding: "9 10",
     borderBottomWidth: 1,
     borderBottomColor: COLORS.BORDER,
+    minHeight: 31,
   },
-  tableRowAlt:  { backgroundColor: COLORS.WARM_WHITE },
-  tableRowElec: { backgroundColor: "#f5e6e6" },
-  col1: { flex: 3 },
-  col2: { flex: 1, textAlign: "right" },
-  col3: { flex: 1, textAlign: "right" },
+  tableRowAlt: { backgroundColor: COLORS.SOFT },
+  itemDesc: { fontSize: 9.4, color: COLORS.INK, fontWeight: 700 },
+  itemDetail: { fontSize: 7.7, color: COLORS.MUTED, marginTop: 3 },
+  colDescription: { flex: 4 },
+  colUnits: { flex: 1, textAlign: "right" },
+  colRate: { flex: 1, textAlign: "right" },
+  colAmount: { flex: 1.35, textAlign: "right" },
 
-  // ── Meter sub-row — subdued caption, no duplicated columns ────────────────
-  subRow: {
-    padding: "3 8 3 18",
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.BORDER,
-    backgroundColor: "#fdf0f0",
+  totalsArea: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 14,
+    gap: 18,
   },
-  subText: {
-    fontSize: 7.5,
+  paymentBox: {
+    flex: 1.25,
+    padding: 12,
+    backgroundColor: COLORS.SOFT,
+    borderWidth: 1,
+    borderColor: COLORS.BORDER,
+    borderRadius: 4,
+  },
+  paymentTitle: {
+    fontSize: 8,
+    color: COLORS.BRAND,
+    fontWeight: 700,
+    letterSpacing: 1,
+    marginBottom: 7,
+  },
+  paymentText: {
+    fontSize: 8,
     color: COLORS.MUTED,
-    fontStyle: "italic",
+    lineHeight: 1.45,
+    marginBottom: 3,
   },
-
-  // ── Divider ───────────────────────────────────────────────────────────────
-  divider: {
-    height: 1,
-    backgroundColor: COLORS.BORDER,
-    margin: "0 16",
-  },
-
-  // ── Grand total ───────────────────────────────────────────────────────────
-  grandTotalRow: {
+  paymentMethodsRow: {
     flexDirection: "row",
-    padding: "8 8",
-    backgroundColor: COLORS.CRIMSON,
-    margin: "0 16",
-    borderRadius: 2,
+    gap: 10,
+    marginTop: 8,
   },
-  grandTotalLabel: {
-    flex: 3,
-    color: COLORS.WHITE,
-    fontSize: 10,
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    letterSpacing: 0.5,
+  bankDetailsBox: {
+    flex: 1,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER,
   },
-  grandTotalAmount: {
-    flex: 2,
-    color: COLORS.SAFFRON,
-    fontSize: 11,
-    fontFamily: "Playfair Display",
-    fontWeight: 700,
-    textAlign: "right",
+  bankDetailsText: {
+    fontSize: 7.5,
+    color: COLORS.INK,
+    lineHeight: 1.35,
+    marginBottom: 2,
   },
-
-  // ── Payment information ───────────────────────────────────────────────────
-  notesContainer: {
-    margin: "10 16 0",
-    backgroundColor: COLORS.WARM_WHITE,
-    borderRadius: 2,
-    flexDirection: "row",
-    overflow: "hidden",
+  qrBox: {
+    width: 70,
+    alignItems: "center",
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER,
+  },
+  qrImage: {
+    width: 58,
+    height: 58,
+    objectFit: "contain",
     borderWidth: 1,
     borderColor: COLORS.BORDER,
   },
-  notesAccent:  { width: 3, backgroundColor: COLORS.MUTED },
-  notesContent: { padding: "7 10", flex: 1, gap: 3 },
-  notesTitle: {
-    fontSize: 7,
-    fontWeight: 700,
-    color: COLORS.INK,
-    letterSpacing: 1,
-    marginBottom: 2,
+  qrLabel: {
+    marginTop: 3,
+    fontSize: 6.5,
+    color: COLORS.MUTED,
+    textAlign: "center",
   },
-  notesText: { fontSize: 7.5, color: COLORS.MUTED },
-
-  // ── Landlord notes ────────────────────────────────────────────────────────
-  landlordNotesContainer: {
-    margin: "8 16 0",
-    backgroundColor: "#fef9ed",
-    borderRadius: 2,
+  totalsBox: { width: 210 },
+  totalLine: {
     flexDirection: "row",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#e8c97a",
+    justifyContent: "space-between",
+    padding: "5 0",
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.BORDER,
   },
-  landlordNotesAccent:  { width: 3, backgroundColor: COLORS.SAFFRON },
-  landlordNotesContent: { padding: "7 10", flex: 1, gap: 3 },
-  landlordNotesTitle: {
-    fontSize: 7,
+  totalLabel: { color: COLORS.MUTED, fontSize: 8.5 },
+  totalValue: { color: COLORS.INK, fontSize: 8.5, fontWeight: 700 },
+  amountDue: {
+    marginTop: 6,
+    padding: "10 12",
+    backgroundColor: COLORS.BRAND,
+    borderRadius: 4,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  amountDueLabel: {
+    color: COLORS.WHITE,
+    fontSize: 8,
     fontWeight: 700,
-    color: COLORS.INK,
     letterSpacing: 1,
-    marginBottom: 2,
   },
-  landlordNoteItem: { fontSize: 7.5, color: COLORS.MUTED },
+  amountDueValue: {
+    color: COLORS.ACCENT,
+    fontSize: 13,
+    fontWeight: 700,
+  },
 
-  // ── Signatures ────────────────────────────────────────────────────────────
+  notesBox: {
+    marginTop: 12,
+    padding: 11,
+    borderWidth: 1,
+    borderColor: "#fde2a7",
+    backgroundColor: "#fffbeb",
+    borderRadius: 4,
+  },
+  notesTitle: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: COLORS.BRAND,
+    letterSpacing: 1,
+    marginBottom: 5,
+  },
+  noteItem: { fontSize: 8, color: COLORS.MUTED, marginBottom: 3 },
+
   signaturesRow: {
     flexDirection: "row",
-    margin: "18 16 0",
-    gap: 20,
+    marginTop: 28,
+    gap: 32,
   },
   sigBlock: { flex: 1, alignItems: "center" },
   sigLine: {
     borderTopWidth: 1,
     borderTopColor: COLORS.BORDER,
     width: "100%",
-    marginBottom: 4,
+    marginBottom: 5,
   },
-  sigLabel: { fontSize: 7, color: COLORS.MUTED, letterSpacing: 0.5 },
+  sigLabel: { fontSize: 7.5, color: COLORS.MUTED },
 
-  // ── Footer ────────────────────────────────────────────────────────────────
   footer: {
-    backgroundColor: COLORS.INK,
-    padding: "6 16",
     position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+    bottom: 18,
+    left: 32,
+    right: 32,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.BORDER,
+    paddingTop: 7,
   },
   footerText: {
-    fontSize: 6.5,
-    color: "#8a7560",
+    fontSize: 7,
+    color: COLORS.MUTED,
     textAlign: "center",
-    fontStyle: "italic",
   },
 });

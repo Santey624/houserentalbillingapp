@@ -18,7 +18,16 @@ export default async function LandlordInvoiceDetailPage(props: {
 
   const landlord = await db.landlord.findUnique({
     where: { userId: session.user.id },
-    select: { id: true, displayName: true, address: true, contact: true, electricityRate: true, paymentDueDay: true },
+    select: {
+      id: true,
+      displayName: true,
+      address: true,
+      contact: true,
+      electricityRate: true,
+      paymentDueDay: true,
+      bankDetails: true,
+      qrImageUrl: true,
+    },
   })
   if (!landlord) redirect('/auth/signin')
 
@@ -62,6 +71,8 @@ export default async function LandlordInvoiceDetailPage(props: {
               serviceCharge: invoice.serviceCharge,
               totalElec: invoice.totalElec,
               grandTotal: invoice.grandTotal,
+              dueDate: invoice.dueDate,
+              status: invoice.status,
               notes: invoice.notes,
               lineItems: invoice.lineItems.map((li) => ({
                 description: li.description,
@@ -70,6 +81,15 @@ export default async function LandlordInvoiceDetailPage(props: {
                   ? { prevReading: li.meterReading.prevReading, currReading: li.meterReading.currReading, consumed: li.meterReading.consumed }
                   : null,
               })),
+              building: {
+                name: invoice.tenancy.unit.building.name,
+                address: invoice.tenancy.unit.building.address,
+                contact: invoice.tenancy.unit.building.contact,
+              },
+              unit: {
+                unitNumber: invoice.tenancy.unit.unitNumber,
+                floor: invoice.tenancy.unit.floor,
+              },
             }}
             landlord={{
               displayName: landlord.displayName,
@@ -77,6 +97,8 @@ export default async function LandlordInvoiceDetailPage(props: {
               contact: landlord.contact,
               electricityRate: landlord.electricityRate,
               paymentDueDay: landlord.paymentDueDay,
+              bankDetails: landlord.bankDetails,
+              qrImageUrl: landlord.qrImageUrl,
             }}
           />
           {invoice.status !== 'PAID' && (

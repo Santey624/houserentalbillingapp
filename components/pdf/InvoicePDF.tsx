@@ -1,8 +1,7 @@
-import { Document, Page, View, Text, Font } from "@react-pdf/renderer";
+import { Document, Page, View, Text, Font, Image } from "@react-pdf/renderer";
 import { InvoiceData } from "@/lib/invoiceTypes";
-import { styles, COLORS } from "./pdfStyles";
+import { styles } from "./pdfStyles";
 
-// ── Font registration ──────────────────────────────────────────────────────
 Font.register({
   family: "Playfair Display",
   fonts: [
@@ -21,180 +20,255 @@ Font.register({
   ],
 });
 
-// Prevent unwanted mid-word hyphenation in the invoice
 Font.registerHyphenationCallback((word) => [word]);
 
-// ── Helpers ───────────────────────────────────────────────────────────────
 interface Props {
   data: InvoiceData;
 }
 
+type LineItem = {
+  description: string;
+  detail?: string;
+  units?: string;
+  rate?: string;
+  amount: number;
+};
+
 function formatRs(amount: number) {
-  return `Rs. ${amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `Rs. ${amount.toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 }
 
 function formatNum(n: number) {
   return n.toLocaleString("en-IN");
 }
 
-// Newari lattice decorative band — used once, between header and billing period
-function DecorativeBand() {
-  const segments = [3, 0.6, 1.5, 0.6, 3, 0.6, 1.5, 0.6, 3, 0.6, 1.5, 0.6, 3];
-  return (
-    <View style={{ flexDirection: "row", height: 5 }}>
-      {segments.map((flex, i) => (
-        <View
-          key={i}
-          style={{ flex, backgroundColor: i % 2 === 0 ? COLORS.CRIMSON_DARK : COLORS.SAFFRON }}
-        />
-      ))}
-    </View>
-  );
+function ordinal(day: number) {
+  if (day > 10 && day < 20) return `${day}th`;
+  const suffix = day % 10 === 1 ? "st" : day % 10 === 2 ? "nd" : day % 10 === 3 ? "rd" : "th";
+  return `${day}${suffix}`;
 }
 
-// ── Component ─────────────────────────────────────────────────────────────
-export default function InvoicePDF({ data }: Props) {
-  const { landlord, invoice, invoiceNum, nepaliMonth, meters, totalUnits, totalElec, additionalCosts, grandTotal } = data;
+function formatStatus(status?: string) {
+  return (status || "UNPAID").replace(/_/g, " ");
+}
 
-  const lineItems: { label: string; amount: number; isElec?: boolean }[] = [
-    { label: "House Rent", amount: invoice.rentCost },
-    { label: "Electricity Charges", amount: totalElec, isElec: true },
-    ...(invoice.serviceCharge > 0
-      ? [{ label: "Service / Minimum Charge", amount: invoice.serviceCharge }]
-      : []),
-    ...additionalCosts.map((c) => ({ label: c.desc, amount: c.amount })),
-  ];
+function paymentDetailLines(details?: string | null) {
+  return (details || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function buildLineItems(data: InvoiceData): LineItem[] {
+  const { landlord, invoice, meters, totalUnits, totalElec, additionalCosts } = data;
+  const items: LineItem[] = [];
+
+  if (invoice.rentCost > 0) {
+    items.push({
+      description: "Monthly Rent",
+      detail: `${data.nepaliMonth} ${invoice.nepaliYear}`,
+      amount: invoice.rentCost,
+    });
+  }
+
+  if (totalElec > 0 || meters.length > 0) {
+    items.push({
+      description: "Electricity Charges",
+      detail:
+        meters.length > 0
+          ? meters
+              .map(
+                (meter) =>
+                  `${meter.name}: ${formatNum(meter.prev)} to ${formatNum(meter.curr)} (${formatNum(
+                    meter.consumed
+                  )} units)`
+              )
+              .join("; ")
+          : undefined,
+      units: totalUnits > 0 ? `${formatNum(totalUnits)}` : undefined,
+      rate: landlord.electricityRate ? `Rs. ${landlord.electricityRate}/unit` : undefined,
+      amount: totalElec,
+    });
+  }
+
+  if (invoice.serviceCharge > 0) {
+    items.push({
+      description: "Service / Minimum Charge",
+      amount: invoice.serviceCharge,
+    });
+  }
+
+  additionalCosts.forEach((cost) => {
+    items.push({
+      description: cost.desc,
+      amount: cost.amount,
+    });
+  });
+
+  return items;
+}
+
+export default function InvoicePDF({ data }: Props) {
+  const { landlord, invoice, invoiceNum, nepaliMonth, grandTotal, meta } = data;
+  const lineItems = buildLineItems(data);
+  const subtotal = lineItems.reduce((sum, item) => sum + item.amount, 0);
+  const buildingName = meta?.buildingName || "Building";
+  const buildingAddress = meta?.buildingAddress || landlord.address;
+  const unitLabel = meta?.unitNumber ? `Unit ${meta.unitNumber}` : "Unit not assigned";
+  const floorLabel = meta?.floor ? `Floor ${meta.floor}` : "";
+  const bankLines = paymentDetailLines(landlord.bankDetails);
+  const hasPaymentMethods = bankLines.length > 0 || Boolean(landlord.qrImageUrl);
 
   return (
-    <Document>
+    <Document title={`${invoiceNum} - ${invoice.tenantName}`}>
       <Page size="A4" style={styles.page}>
-
-        {/* 1. Header */}
         <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.headerLandlordName}>{landlord.name}</Text>
-            <Text style={styles.headerAddress}>{landlord.address}</Text>
-            {landlord.contact ? (
-              <Text style={styles.headerAddress}>{landlord.contact}</Text>
-            ) : null}
+          <View style={styles.brandBlock}>
+            <Image src="/gharkhata-logo.png" style={styles.logo} />
+            <Text style={styles.brandTagline}>Rental billing and property management</Text>
           </View>
           <View style={styles.headerRight}>
-            <Text style={styles.headerTitle}>RENTAL INVOICE</Text>
-            <Text style={styles.headerInvoiceNum}>Invoice #: {invoiceNum}</Text>
-            <Text style={styles.headerDate}>Date: {invoice.invoiceDate}</Text>
+            <Text style={styles.headerTitle}>INVOICE</Text>
+            <Text style={styles.statusBadge}>{formatStatus(meta?.status)}</Text>
           </View>
         </View>
 
-        {/* Newari lattice motif — used once */}
-        <DecorativeBand />
-
-        {/* 2. Billing Period — typographic celebration */}
-        <View style={styles.billingPeriodContainer}>
-          <Text style={styles.billingPeriodLabel}>BILLING PERIOD</Text>
-          <Text style={styles.billingPeriodValue}>
-            {nepaliMonth} {invoice.nepaliYear}
-          </Text>
-        </View>
-
-        {/* 3. FROM / BILL TO */}
-        <View style={styles.partyRow}>
-          <View style={[styles.partyCard, styles.partyCardFrom]}>
-            <Text style={[styles.partyLabel, styles.partyLabelFrom]}>FROM</Text>
-            <Text style={[styles.partyName, styles.partyNameFrom]}>{landlord.name}</Text>
-            <Text style={[styles.partyDetail, styles.partyDetailFrom]}>{landlord.address}</Text>
-            {landlord.contact ? (
-              <Text style={[styles.partyDetail, styles.partyDetailFrom]}>{landlord.contact}</Text>
-            ) : null}
+        <View style={styles.metaGrid}>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Invoice Number</Text>
+            <Text style={styles.metaValue}>{invoiceNum}</Text>
           </View>
-          <View style={[styles.partyCard, styles.partyCardTo]}>
-            <Text style={[styles.partyLabel, styles.partyLabelTo]}>BILL TO</Text>
-            <Text style={[styles.partyName, styles.partyNameTo]}>{invoice.tenantName}</Text>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Invoice Date</Text>
+            <Text style={styles.metaValue}>{invoice.invoiceDate}</Text>
+          </View>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Due Date</Text>
+            <Text style={styles.metaValue}>{meta?.dueDate || `${ordinal(landlord.paymentDueDay)} of month`}</Text>
+          </View>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Billing Period</Text>
+            <Text style={styles.metaValue}>
+              {nepaliMonth} {invoice.nepaliYear}
+            </Text>
           </View>
         </View>
 
-        {/* 4. Items Table */}
-        <View style={styles.tableContainer}>
+        <View style={styles.summaryRow}>
+          <View style={styles.partyCard}>
+            <Text style={styles.partyLabel}>FROM</Text>
+            <Text style={styles.partyName}>{landlord.name}</Text>
+            <Text style={styles.partyDetail}>{landlord.address}</Text>
+            {landlord.contact ? <Text style={styles.partyDetail}>{landlord.contact}</Text> : null}
+          </View>
+
+          <View style={[styles.partyCard, styles.partyCardStrong]}>
+            <Text style={[styles.partyLabel, styles.partyLabelStrong]}>BILL TO</Text>
+            <Text style={[styles.partyName, styles.partyNameStrong]}>{invoice.tenantName}</Text>
+            <Text style={[styles.partyDetail, styles.partyDetailStrong]}>{buildingName}</Text>
+            <Text style={[styles.partyDetail, styles.partyDetailStrong]}>
+              {unitLabel}
+              {floorLabel ? `, ${floorLabel}` : ""}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.metaGrid}>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Building</Text>
+            <Text style={styles.metaValue}>{buildingName}</Text>
+            <Text style={styles.metaSubValue}>{buildingAddress}</Text>
+          </View>
+          <View style={styles.metaCard}>
+            <Text style={styles.metaLabel}>Unit</Text>
+            <Text style={styles.metaValue}>{unitLabel}</Text>
+            {floorLabel ? <Text style={styles.metaSubValue}>{floorLabel}</Text> : null}
+          </View>
+        </View>
+
+        <Text style={styles.sectionTitle}>CHARGES</Text>
+        <View style={styles.table}>
           <View style={styles.tableHeader}>
-            <Text style={[styles.tableHeaderText, styles.col1]}>DESCRIPTION</Text>
-            <Text style={[styles.tableHeaderText, styles.col2]}>UNITS</Text>
-            <Text style={[styles.tableHeaderText, styles.col3]}>AMOUNT</Text>
+            <Text style={[styles.tableHeaderText, styles.colDescription]}>DESCRIPTION</Text>
+            <Text style={[styles.tableHeaderText, styles.colUnits]}>UNITS</Text>
+            <Text style={[styles.tableHeaderText, styles.colRate]}>RATE</Text>
+            <Text style={[styles.tableHeaderText, styles.colAmount]}>AMOUNT</Text>
           </View>
 
-          {lineItems.map((item, i) => (
-            <View key={i}>
-              <View
-                style={[
-                  styles.tableRow,
-                  item.isElec ? styles.tableRowElec : i % 2 === 1 ? styles.tableRowAlt : {},
-                ]}
-              >
-                <Text style={styles.col1}>{item.label}</Text>
-                <Text style={styles.col2}>
-                  {item.isElec ? `${formatNum(totalUnits)} units` : ""}
-                </Text>
-                <Text style={styles.col3}>{formatRs(item.amount)}</Text>
+          {lineItems.map((item, index) => (
+            <View key={`${item.description}-${index}`} style={[styles.tableRow, index % 2 === 1 ? styles.tableRowAlt : {}]}>
+              <View style={styles.colDescription}>
+                <Text style={styles.itemDesc}>{item.description}</Text>
+                {item.detail ? <Text style={styles.itemDetail}>{item.detail}</Text> : null}
               </View>
-
-              {/* Meter sub-rows — subdued caption, no duplicate numbers */}
-              {item.isElec &&
-                meters.map((meter, j) => (
-                  <View key={j} style={styles.subRow}>
-                    <Text style={styles.subText}>
-                      {meter.name}: {formatNum(meter.prev)} → {formatNum(meter.curr)} · {formatNum(meter.consumed)} units × Rs.{landlord.electricityRate} = {formatRs(meter.cost)}
-                    </Text>
-                  </View>
-                ))}
+              <Text style={styles.colUnits}>{item.units || "-"}</Text>
+              <Text style={styles.colRate}>{item.rate || "-"}</Text>
+              <Text style={styles.colAmount}>{formatRs(item.amount)}</Text>
             </View>
           ))}
-
-          <View style={styles.divider} />
         </View>
 
-        {/* Grand Total */}
-        <View style={styles.grandTotalRow}>
-          <Text style={styles.grandTotalLabel}>GRAND TOTAL</Text>
-          <Text style={styles.grandTotalAmount}>{formatRs(grandTotal)}</Text>
-        </View>
-
-        {/* 5. Payment Information */}
-        <View style={styles.notesContainer}>
-          <View style={styles.notesAccent} />
-          <View style={styles.notesContent}>
-            <Text style={styles.notesTitle}>PAYMENT INFORMATION</Text>
-            <Text style={styles.notesText}>
-              • Payment is due by the {landlord.paymentDueDay}
-              {landlord.paymentDueDay === 1
-                ? "st"
-                : landlord.paymentDueDay === 2
-                ? "nd"
-                : landlord.paymentDueDay === 3
-                ? "rd"
-                : "th"}{" "}
-              of each month.
+        <View style={styles.totalsArea}>
+          <View style={styles.paymentBox}>
+            <Text style={styles.paymentTitle}>PAYMENT INFORMATION</Text>
+            <Text style={styles.paymentText}>Payment is due by the {ordinal(landlord.paymentDueDay)} of each month.</Text>
+            <Text style={styles.paymentText}>Include invoice number {invoiceNum} and {unitLabel} with your payment.</Text>
+            <Text style={styles.paymentText}>
+              For billing queries, contact {landlord.name}
+              {landlord.contact ? ` at ${landlord.contact}` : ""}.
             </Text>
-            <Text style={styles.notesText}>
-              • Please include your unit number and invoice number with your payment.
-            </Text>
-            <Text style={styles.notesText}>
-              • For queries, contact the landlord at {landlord.contact || landlord.address}.
-            </Text>
+            {hasPaymentMethods ? (
+              <View style={styles.paymentMethodsRow}>
+                {bankLines.length > 0 ? (
+                  <View style={styles.bankDetailsBox}>
+                    <Text style={styles.paymentTitle}>BANK / TRANSFER DETAILS</Text>
+                    {bankLines.map((line, index) => (
+                      <Text key={index} style={styles.bankDetailsText}>
+                        {line}
+                      </Text>
+                    ))}
+                  </View>
+                ) : null}
+                {landlord.qrImageUrl ? (
+                  <View style={styles.qrBox}>
+                    <Image src={landlord.qrImageUrl} style={styles.qrImage} />
+                    <Text style={styles.qrLabel}>Payment QR</Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
           </View>
-        </View>
 
-        {/* 6. Landlord Notes */}
-        {data.notes.length > 0 && (
-          <View style={styles.landlordNotesContainer}>
-            <View style={styles.landlordNotesAccent} />
-            <View style={styles.landlordNotesContent}>
-              <Text style={styles.landlordNotesTitle}>NOTES FROM LANDLORD</Text>
-              {data.notes.map((note, i) => (
-                <Text key={i} style={styles.landlordNoteItem}>• {note}</Text>
-              ))}
+          <View style={styles.totalsBox}>
+            <View style={styles.totalLine}>
+              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalValue}>{formatRs(subtotal)}</Text>
+            </View>
+            <View style={styles.totalLine}>
+              <Text style={styles.totalLabel}>Adjustments</Text>
+              <Text style={styles.totalValue}>{formatRs(grandTotal - subtotal)}</Text>
+            </View>
+            <View style={styles.amountDue}>
+              <Text style={styles.amountDueLabel}>AMOUNT DUE</Text>
+              <Text style={styles.amountDueValue}>{formatRs(grandTotal)}</Text>
             </View>
           </View>
-        )}
+        </View>
 
-        {/* 7. Signatures */}
+        {data.notes.length > 0 ? (
+          <View style={styles.notesBox}>
+            <Text style={styles.notesTitle}>NOTES</Text>
+            {data.notes.map((note, index) => (
+              <Text key={index} style={styles.noteItem}>
+                {note}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
         <View style={styles.signaturesRow}>
           <View style={styles.sigBlock}>
             <View style={styles.sigLine} />
@@ -206,13 +280,11 @@ export default function InvoicePDF({ data }: Props) {
           </View>
         </View>
 
-        {/* Footer */}
         <View style={styles.footer} fixed>
           <Text style={styles.footerText}>
-            Generated by GharKhata · {invoiceNum} · {invoice.invoiceDate}
+            Generated by GharKhata | {invoiceNum} | {buildingName} {meta?.unitNumber ? `Unit ${meta.unitNumber}` : ""}
           </Text>
         </View>
-
       </Page>
     </Document>
   );

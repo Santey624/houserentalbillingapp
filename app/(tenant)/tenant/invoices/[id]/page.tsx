@@ -49,6 +49,8 @@ export default async function TenantInvoiceDetailPage(props: {
       contact: landlord.contact,
       electricityRate: landlord.electricityRate,
       paymentDueDay: landlord.paymentDueDay,
+      bankDetails: landlord.bankDetails,
+      qrImageUrl: landlord.qrImageUrl,
     },
     invoice: {
       tenantName: invoice.tenantName,
@@ -60,6 +62,15 @@ export default async function TenantInvoiceDetailPage(props: {
     },
     invoiceNum: invoice.invoiceNumber,
     nepaliMonth: invoice.nepaliMonth,
+    meta: {
+      buildingName: invoice.tenancy.unit.building.name,
+      buildingAddress: invoice.tenancy.unit.building.address,
+      buildingContact: invoice.tenancy.unit.building.contact,
+      unitNumber: invoice.tenancy.unit.unitNumber,
+      floor: invoice.tenancy.unit.floor,
+      dueDate: invoice.dueDate,
+      status: invoice.status,
+    },
     meters: invoice.lineItems
       .filter((li: (typeof invoice.lineItems)[number]) => li.meterReading)
       .map((li: (typeof invoice.lineItems)[number]) => ({

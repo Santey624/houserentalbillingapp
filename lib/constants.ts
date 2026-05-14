@@ -19,6 +19,8 @@ export const DEFAULT_LANDLORD = {
   contact: "+977-9842985574",
   electricityRate: 17.0,
   paymentDueDay: 2,
+  bankDetails: "",
+  qrImageUrl: "",
 };
 
 export const DEFAULT_INVOICE = {

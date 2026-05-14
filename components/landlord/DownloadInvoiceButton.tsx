@@ -22,8 +22,19 @@ interface Props {
     serviceCharge: number;
     totalElec: number;
     grandTotal: number;
+    dueDate: string | null;
+    status: string;
     notes: string | null;
     lineItems: LineItem[];
+    building: {
+      name: string;
+      address: string;
+      contact: string;
+    };
+    unit: {
+      unitNumber: string;
+      floor: string | null;
+    };
   };
   landlord: {
     displayName: string;
@@ -31,6 +42,8 @@ interface Props {
     contact: string;
     electricityRate: number;
     paymentDueDay: number;
+    bankDetails: string | null;
+    qrImageUrl: string | null;
   };
 }
 
@@ -62,6 +75,8 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
         contact: landlord.contact,
         electricityRate: landlord.electricityRate,
         paymentDueDay: landlord.paymentDueDay,
+        bankDetails: landlord.bankDetails,
+        qrImageUrl: landlord.qrImageUrl,
       },
       invoice: {
         tenantName: invoice.tenantName,
@@ -73,6 +88,15 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
       },
       invoiceNum: invoice.invoiceNumber,
       nepaliMonth: invoice.nepaliMonth,
+      meta: {
+        buildingName: invoice.building.name,
+        buildingAddress: invoice.building.address,
+        buildingContact: invoice.building.contact,
+        unitNumber: invoice.unit.unitNumber,
+        floor: invoice.unit.floor,
+        dueDate: invoice.dueDate,
+        status: invoice.status,
+      },
       meters,
       totalUnits: meters.reduce((sum, m) => sum + m.consumed, 0),
       totalElec: invoice.totalElec,

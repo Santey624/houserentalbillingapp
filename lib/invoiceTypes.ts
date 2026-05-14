@@ -4,6 +4,8 @@ export interface LandlordConfig {
   contact: string;
   electricityRate: number;
   paymentDueDay: number;
+  bankDetails?: string | null;
+  qrImageUrl?: string | null;
 }
 
 export interface InvoiceDetails {
@@ -46,6 +48,15 @@ export interface InvoiceData {
   invoice: InvoiceDetails;
   invoiceNum: string;
   nepaliMonth: string;
+  meta?: {
+    buildingName?: string;
+    buildingAddress?: string;
+    buildingContact?: string;
+    unitNumber?: string;
+    floor?: string | null;
+    dueDate?: string | null;
+    status?: string;
+  };
   meters: ComputedMeter[];
   totalUnits: number;
   totalElec: number;
