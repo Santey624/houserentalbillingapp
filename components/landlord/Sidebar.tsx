@@ -16,7 +16,6 @@ const navItems = [
 export default function LandlordSidebar() {
   return (
     <AppSidebar
-      title="AKS Rental"
       subtitle="Landlord Portal"
       navItems={navItems}
       rootHref="/landlord"

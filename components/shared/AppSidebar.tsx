@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { cn } from '@/lib/utils'
 import { Bell, LogOut, Menu, X, type LucideIcon } from 'lucide-react'
+import { Logo } from '@/components/shared/Logo'
 
 export interface NavItem {
   href: string
@@ -14,13 +15,12 @@ export interface NavItem {
 }
 
 interface AppSidebarProps {
-  title: string
   subtitle: string
   navItems: NavItem[]
   rootHref: string
 }
 
-export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarProps) {
+export function AppSidebar({ subtitle, navItems, rootHref }: AppSidebarProps) {
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
 
@@ -74,14 +74,9 @@ export function AppSidebar({ title, subtitle, navItems, rootHref }: AppSidebarPr
   )
 
   const SidebarBrand = () => (
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center flex-shrink-0 shadow-sm">
-        <span className="text-white text-sm font-bold">A</span>
-      </div>
-      <div className="min-w-0">
-        <p className="font-semibold text-sm text-foreground truncate">{title}</p>
-        <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
-      </div>
+    <div className="flex flex-col gap-1">
+      <Logo height={48} />
+      <p className="text-xs text-muted-foreground pl-0.5">{subtitle}</p>
     </div>
   )
 

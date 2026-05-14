@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Building2, ArrowRight, CheckCircle2, Users, MapPin } from 'lucide-react'
+import { Logo, LogoDark } from '@/components/shared/Logo'
 
 export default async function LandingPage() {
   const session = await auth()
@@ -54,11 +55,8 @@ export default async function LandingPage() {
       {/* ── Nav ────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">G</span>
-            </div>
-            <span className="font-semibold text-foreground text-lg">GharKhata</span>
+          <Link href="/">
+            <Logo height={56} />
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/auth/signin" className="btn-ghost hidden sm:inline-flex">
@@ -296,16 +294,78 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="bg-foreground border-t border-white/5 py-8 px-5 sm:px-8">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-md gradient-bg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">A</span>
+      <footer className="bg-foreground">
+        {/* Main grid */}
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-16 pb-12 grid grid-cols-2 md:grid-cols-[2fr_1fr_1fr_1fr] gap-10 border-b border-white/[0.07]">
+          {/* Brand */}
+          <div className="col-span-2 md:col-span-1">
+            <LogoDark showTagline />
+            <p className="text-white/40 text-sm leading-relaxed mt-5 max-w-xs">
+              Nepal&apos;s modern rental management platform — built for landlords and tenants across the country.
+            </p>
+            <div className="flex items-center gap-1.5 mt-6">
+              <MapPin size={12} className="text-white/25" />
+              <span className="text-white/25 text-xs">Made in Nepal</span>
             </div>
-            <span className="text-white/40 text-sm">GharKhata</span>
           </div>
-          <p className="text-white/30 text-xs">
-            &copy; {new Date().getFullYear()} — Built in Nepal
+
+          {/* Product */}
+          <div>
+            <p className="text-white/55 font-semibold text-xs uppercase tracking-widest mb-5">Product</p>
+            <ul className="space-y-3.5">
+              {[
+                { label: 'For Landlords', href: '/auth/signup?role=LANDLORD' },
+                { label: 'For Tenants', href: '/auth/signup?role=TENANT' },
+                { label: 'Features', href: '#' },
+                { label: 'Pricing', href: '#' },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <Link href={href} className="text-white/35 hover:text-white/65 text-sm transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Account */}
+          <div>
+            <p className="text-white/55 font-semibold text-xs uppercase tracking-widest mb-5">Account</p>
+            <ul className="space-y-3.5">
+              {[
+                { label: 'Sign In', href: '/auth/signin' },
+                { label: 'Create Account', href: '/auth/signup' },
+                { label: 'Reset Password', href: '/auth/reset' },
+              ].map(({ label, href }) => (
+                <li key={label}>
+                  <Link href={href} className="text-white/35 hover:text-white/65 text-sm transition-colors">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <p className="text-white/55 font-semibold text-xs uppercase tracking-widest mb-5">Legal</p>
+            <ul className="space-y-3.5">
+              {['Privacy Policy', 'Terms of Service', 'Contact Us'].map((label) => (
+                <li key={label}>
+                  <span className="text-white/35 text-sm">{label}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-white/25 text-xs">
+            &copy; {new Date().getFullYear()} GharKhata (घरखाता). All rights reserved.
+          </p>
+          <p className="text-white/20 text-xs tracking-wide">
+            Designed &amp; built in Nepal 🇳🇵
           </p>
         </div>
       </footer>
