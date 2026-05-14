@@ -8,7 +8,7 @@ export default async function SignUpPage(props: {
     <>
       <div className="mb-8">
         <h1 className="text-3xl text-foreground mb-1.5">Create your account</h1>
-        <p className="text-sm text-muted-foreground">Join the AKS Rental platform today</p>
+        <p className="text-sm text-muted-foreground">Join the GharKhata platform today</p>
       </div>
       <SignUpForm defaultRole={role === 'LANDLORD' ? 'LANDLORD' : 'TENANT'} />
     </>

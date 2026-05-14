@@ -231,7 +231,7 @@ export async function createInvoiceAction(formData: FormData) {
       throw new Error('Selected unit already has an active tenant')
     }
 
-    const manualEmail = `manual-${crypto.randomUUID()}@aks-invoice.local`
+    const manualEmail = `manual-${crypto.randomUUID()}@gharkhata.local`
 
     const manualTenant = await db.tenant.create({
       data: {
@@ -315,7 +315,7 @@ export async function createInvoiceAction(formData: FormData) {
       `Invoice ${invoiceNumber} for ${fields.nepaliMonth} ${fields.nepaliYear} has been issued.`,
       `/tenant/invoices/${invoice.id}`
     )
-    if (!tenantEmail.endsWith('@aks-invoice.local')) {
+    if (!tenantEmail.endsWith('@gharkhata.local')) {
       await sendInvoiceNotification(tenantEmail, invoiceNumber, invoice.id)
     }
   })
@@ -365,7 +365,7 @@ export async function deleteInvoiceAction(invoiceId: string): Promise<void> {
     throw new Error('Invoice not found')
   }
 
-  const manualUserId = invoice.tenancy.tenant.user.email.endsWith('@aks-invoice.local')
+  const manualUserId = invoice.tenancy.tenant.user.email.endsWith('@gharkhata.local')
     ? invoice.tenancy.tenant.userId
     : null
   const shouldDeleteManualTenant = manualUserId && invoice.tenancy._count.invoices === 1

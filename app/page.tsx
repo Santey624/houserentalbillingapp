@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { Building2, FileText, Wrench, ArrowRight, CheckCircle2, Users, MapPin } from 'lucide-react'
+import { Building2, ArrowRight, CheckCircle2, Users, MapPin } from 'lucide-react'
 
 export default async function LandingPage() {
   const session = await auth()
@@ -56,9 +56,9 @@ export default async function LandingPage() {
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">A</span>
+              <span className="text-white font-bold text-sm">G</span>
             </div>
-            <span className="font-semibold text-foreground text-lg">AKS Rental</span>
+            <span className="font-semibold text-foreground text-lg">GharKhata</span>
           </Link>
           <div className="flex items-center gap-3">
             <Link href="/auth/signin" className="btn-ghost hidden sm:inline-flex">
@@ -281,7 +281,7 @@ export default async function LandingPage() {
             <span className="gradient-text">started?</span>
           </h2>
           <p className="text-white/50 mb-10 text-lg">
-            Join landlords and tenants already using AKS Rental.
+            Join landlords and tenants already using GharKhata.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="btn-primary h-14 px-10 text-base">
@@ -302,7 +302,7 @@ export default async function LandingPage() {
             <div className="w-6 h-6 rounded-md gradient-bg flex items-center justify-center">
               <span className="text-white font-bold text-xs">A</span>
             </div>
-            <span className="text-white/40 text-sm">AKS Rental Platform</span>
+            <span className="text-white/40 text-sm">GharKhata</span>
           </div>
           <p className="text-white/30 text-xs">
             &copy; {new Date().getFullYear()} — Built in Nepal

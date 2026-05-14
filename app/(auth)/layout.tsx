@@ -23,9 +23,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Logo */}
         <Link href="/" className="relative flex items-center gap-3 mb-auto">
           <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-base">A</span>
+            <span className="text-white font-bold text-base">G</span>
           </div>
-          <span className="text-white font-semibold text-xl">AKS Rental</span>
+          <span className="text-white font-semibold text-xl">GharKhata</span>
         </Link>
 
         {/* Feature highlights */}
@@ -55,9 +55,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* Mobile logo */}
         <Link href="/" className="lg:hidden flex items-center gap-3 mb-10">
           <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center shadow-md">
-            <span className="text-white font-bold">A</span>
+            <span className="text-white font-bold">G</span>
           </div>
-          <span className="font-semibold text-foreground text-lg">AKS Rental</span>
+          <span className="font-semibold text-foreground text-lg">GharKhata</span>
         </Link>
 
         <div className="w-full max-w-sm">

@@ -24,8 +24,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'AKS Rental Platform',
-  description: 'Rental management for Nepal landlords and tenants',
+  title: 'GharKhata — Smart Rent Management',
+  description: 'Smart rent management for Nepal landlords and tenants',
 }
 
 export default function RootLayout({
