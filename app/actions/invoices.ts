@@ -320,6 +320,7 @@ export async function createInvoiceAction(formData: FormData) {
     }
   })
 
+  revalidatePath('/landlord')
   revalidatePath('/landlord/invoices')
   revalidatePath('/landlord/join-requests')
   revalidatePath('/landlord/tenants')
@@ -340,6 +341,7 @@ export async function updateInvoiceStatusAction(invoiceId: string, status: 'UNPA
   }
 
   await db.invoice.update({ where: { id: invoiceId }, data: { status } })
+  revalidatePath('/landlord')
   revalidatePath(`/landlord/invoices/${invoiceId}`)
   revalidatePath('/landlord/invoices')
 }
@@ -378,6 +380,7 @@ export async function deleteInvoiceAction(invoiceId: string): Promise<void> {
     }
   })
 
+  revalidatePath('/landlord')
   revalidatePath('/landlord/invoices')
   revalidatePath('/landlord/tenants')
   redirect('/landlord/invoices')

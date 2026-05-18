@@ -66,13 +66,25 @@ export async function approveJoinRequestAction(requestId: string): Promise<void>
   })
   if (!request || request.building.landlordId !== landlord.id) throw new Error('Request not found')
 
+  if (!request.unitId) {
+    throw new Error('Please select a unit before approving the request.')
+  }
+
+  // Check if unit is already occupied
+  const existingTenancy = await db.tenancy.findFirst({
+    where: { unitId: request.unitId, status: 'ACTIVE' }
+  })
+  if (existingTenancy) {
+    throw new Error('This unit already has an active tenant. Please end the existing tenancy first.')
+  }
+
   // Create tenancy
   await db.$transaction([
     db.joinRequest.update({ where: { id: requestId }, data: { status: 'APPROVED' } }),
     db.tenancy.create({
       data: {
         tenantId: request.tenantId,
-        unitId: request.unitId!,
+        unitId: request.unitId,
         status: 'ACTIVE',
       },
     }),
@@ -92,7 +104,9 @@ export async function approveJoinRequestAction(requestId: string): Promise<void>
     await sendJoinRequestResult(tenantEmail, true, buildingName)
   })
 
+  revalidatePath('/landlord')
   revalidatePath('/landlord/join-requests')
+  revalidatePath('/landlord/tenants')
 }
 
 export async function rejectJoinRequestAction(requestId: string): Promise<void> {
@@ -125,5 +139,6 @@ export async function rejectJoinRequestAction(requestId: string): Promise<void> 
     await sendJoinRequestResult(tenantEmail, false, buildingName)
   })
 
+  revalidatePath('/landlord')
   revalidatePath('/landlord/join-requests')
 }

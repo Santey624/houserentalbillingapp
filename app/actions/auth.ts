@@ -7,7 +7,6 @@ import { signIn } from '@/lib/auth'
 import { SignUpSchema, SignInSchema, ResetRequestSchema, ResetPasswordSchema } from '@/lib/validations'
 import { generateToken } from '@/lib/utils'
 import {
-  sendVerificationEmail,
   sendPasswordResetEmail,
 } from '@/lib/email'
 import type { Role } from '@prisma/client'
@@ -28,8 +27,6 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
   }
 
   const hashed = await bcrypt.hash(password, 12)
-  const token = generateToken()
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24h
 
   const user = await db.user.create({
     data: {
@@ -37,9 +34,7 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
       email,
       password: hashed,
       role: role as Role,
-      verificationTokens: {
-        create: { token, type: 'email_verify', expiresAt },
-      },
+      emailVerified: new Date(), // Auto-verify on signup
     },
   })
 
@@ -54,19 +49,7 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   }
 
-  try {
-    await sendVerificationEmail(email, token)
-  } catch (error) {
-    console.error('Failed to send verification email:', error)
-    try {
-      await db.user.delete({ where: { id: user.id } })
-    } catch (cleanupError) {
-      console.error('Failed to clean up user after email send failure:', cleanupError)
-    }
-    return { errors: { email: ['Could not send verification email. Please try signing up again.'] } }
-  }
-
-  redirect('/auth/verify?sent=1')
+  redirect('/auth/signin?signup=success')
 }
 
 export async function signInAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -76,11 +59,6 @@ export async function signInAction(prevState: ActionState, formData: FormData): 
   }
 
   const { email, password } = parsed.data
-
-  const user = await db.user.findUnique({ where: { email }, select: { emailVerified: true } })
-  if (user && !user.emailVerified) {
-    return { errors: { email: ['Please verify your email before signing in'] } }
-  }
 
   try {
     await signIn('credentials', { email, password, redirect: false })
@@ -136,14 +114,13 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
       data: { userId: user.id, token, type: 'password_reset', expiresAt },
     })
 
-    try {
-      await sendPasswordResetEmail(email, token)
-    } catch (error) {
-      console.error(`Failed to send password reset email for user ${user.id}:`, error)
-      const deletedTokens = await db.verificationToken.deleteMany({
+    const result = await sendPasswordResetEmail(email, token)
+    if (!result.success) {
+      console.error(`CRITICAL: Failed to send password reset email to ${email}. Error:`, result.error)
+      // Cleanup token if email failed
+      await db.verificationToken.deleteMany({
         where: { userId: user.id, type: 'password_reset' },
       })
-      console.warn(`Cleaned up ${deletedTokens.count} password reset token(s) for user ${user.id} after email failure.`)
     }
   }
 

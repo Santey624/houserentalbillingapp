@@ -132,5 +132,6 @@ export async function verifyPaymentAction(paymentId: string, approved: boolean, 
     await sendPaymentVerificationResult(tenantEmail, approved, invoiceNumber)
   })
 
+  revalidatePath('/landlord')
   revalidatePath(`/landlord/invoices/${payment.invoiceId}`)
 }

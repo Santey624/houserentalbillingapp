@@ -149,6 +149,8 @@ model Building {
   landlord     Landlord       @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   units        Unit[]
   joinRequests JoinRequest[]
+
+  @@index([landlordId])
 }
 
 model Unit {
@@ -166,6 +168,7 @@ model Unit {
   invoices     Invoice[]
 
   @@unique([buildingId, unitNumber])
+  @@index([buildingId])
 }
 
 model Tenant {
@@ -195,6 +198,9 @@ model Tenancy {
   tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   unit     Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
   invoices Invoice[]
+
+  @@index([tenantId])
+  @@index([unitId])
 }
 
 model JoinRequest {
@@ -210,6 +216,10 @@ model JoinRequest {
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   building Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
   unit     Unit?    @relation(fields: [unitId], references: [id])
+
+  @@index([tenantId])
+  @@index([buildingId])
+  @@index([unitId])
 }
 
 model Invoice {
@@ -235,6 +245,9 @@ model Invoice {
   unit      Unit             @relation(fields: [unitId], references: [id])
   lineItems InvoiceLineItem[]
   payments  Payment[]
+
+  @@index([tenancyId])
+  @@index([unitId])
 }
 
 model InvoiceLineItem {
@@ -248,6 +261,8 @@ model InvoiceLineItem {
 
   invoice      Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   meterReading MeterReading?
+
+  @@index([invoiceId])
 }
 
 model MeterReading {
@@ -277,6 +292,8 @@ model Payment {
   updatedAt     DateTime      @updatedAt
 
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
 }
 
 model MaintenanceRequest {
@@ -292,6 +309,8 @@ model MaintenanceRequest {
   resolvedAt  DateTime?
 
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
 }
 
 model Notification {
@@ -304,4 +323,6 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

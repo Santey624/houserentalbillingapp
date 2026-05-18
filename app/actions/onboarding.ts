@@ -17,6 +17,7 @@ export async function onboardingProfileAction(prevState: ActionState, formData: 
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
 
   await db.landlord.update({ where: { id: landlord.id }, data: parsed.data })
+  revalidatePath('/landlord')
   return { message: 'saved' }
 }
 
@@ -29,6 +30,7 @@ export async function onboardingBuildingAction(prevState: ActionState, formData:
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
 
   const building = await db.building.create({ data: { ...parsed.data, landlordId: landlord.id } })
+  revalidatePath('/landlord')
   return { message: 'saved', buildingId: building.id }
 }
 
@@ -53,5 +55,6 @@ export async function onboardingUnitAction(prevState: ActionState, formData: For
 export async function skipOnboardingAction(): Promise<void> {
   const session = await requireRole('LANDLORD')
   await db.landlord.update({ where: { userId: session.user.id }, data: { onboardingDone: true } })
+  revalidatePath('/landlord')
   redirect('/landlord')
 }

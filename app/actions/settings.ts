@@ -17,7 +17,16 @@ export async function updateLandlordSettingsAction(prevState: ActionState, formD
   const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
   if (!landlord) return { errors: { _: ['Landlord profile not found'] } }
 
-  const parsed = LandlordProfileSchema.safeParse(Object.fromEntries(formData))
+  const rawData = {
+    displayName: formData.get('displayName'),
+    address: formData.get('address'),
+    contact: formData.get('contact'),
+    electricityRate: formData.get('electricityRate'),
+    paymentDueDay: formData.get('paymentDueDay'),
+    bankDetails: formData.get('bankDetails'),
+  }
+
+  const parsed = LandlordProfileSchema.safeParse(rawData)
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
 
   let qrImageUrl = landlord.qrImageUrl

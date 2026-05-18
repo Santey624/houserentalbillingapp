@@ -36,6 +36,7 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${calistoga.variable} ${jetbrainsMono.variable} h-full`}
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col">
         <SessionProvider>{children}</SessionProvider>
