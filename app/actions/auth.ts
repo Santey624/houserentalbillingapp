@@ -140,9 +140,10 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
       await sendPasswordResetEmail(email, token)
     } catch (error) {
       console.error(`Failed to send password reset email for user ${user.id}:`, error)
-      await db.verificationToken.deleteMany({
+      const deletedTokens = await db.verificationToken.deleteMany({
         where: { userId: user.id, type: 'password_reset' },
       })
+      console.warn(`Cleaned up ${deletedTokens.count} password reset token(s) for user ${user.id} after email failure.`)
     }
   }
 
