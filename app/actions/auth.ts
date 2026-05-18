@@ -1,7 +1,6 @@
 'use server'
 
 import bcrypt from 'bcryptjs'
-import { after } from 'next/server'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { signIn } from '@/lib/auth'
@@ -55,9 +54,7 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   }
 
-  after(async () => {
-    await sendVerificationEmail(email, token)
-  })
+  await sendVerificationEmail(email, token)
 
   redirect('/auth/verify?sent=1')
 }
@@ -129,9 +126,7 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
       data: { userId: user.id, token, type: 'password_reset', expiresAt },
     })
 
-    after(async () => {
-      await sendPasswordResetEmail(email, token)
-    })
+    await sendPasswordResetEmail(email, token)
   }
 
   // Always return success to avoid email enumeration
