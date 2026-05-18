@@ -95,13 +95,13 @@ export default function TenantBuildingsPage() {
 
       <form onSubmit={handleSearch} className="flex gap-3 mb-8">
         <div className="relative flex-1">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by building name or landlord..."
-            className="input-modern pl-9"
+            className="input-modern !pl-11"
           />
         </div>
         <button type="submit" disabled={loading} className="btn-primary px-5">
