@@ -55,7 +55,11 @@ export async function updateLandlordSettingsAction(prevState: ActionState, formD
     return { errors: { _: [`Could not save settings: ${getErrorMessage(error)}`] } }
   }
 
+  // Revalidate multiple paths to ensure updates reflect everywhere
   revalidatePath('/landlord/settings')
+  revalidatePath('/landlord/invoices', 'layout')
+  revalidatePath('/tenant/invoices', 'layout')
+  
   return { message: 'Settings saved.' }
 }
 

@@ -122,8 +122,11 @@ export default function InvoicePDF({ data }: Props) {
   const unitLabel = meta?.unitNumber ? `Unit ${meta.unitNumber}` : "Unit not assigned";
   const floorLabel = meta?.floor ? `Floor ${meta.floor}` : "";
   const bankLines = paymentDetailLines(landlord.bankDetails);
-  const qrImage = landlord.qrImageUrl && landlord.qrImageUrl.startsWith('http') ? landlord.qrImageUrl : null;
+
+  // Use a simpler check for the QR image
+  const qrImage = landlord.qrImageUrl && landlord.qrImageUrl.length > 10 ? landlord.qrImageUrl : null;
   const hasPaymentMethods = bankLines.length > 0 || Boolean(qrImage);
+
 
   return (
     <Document title={`${invoiceNum} - ${invoice.tenantName}`}>
