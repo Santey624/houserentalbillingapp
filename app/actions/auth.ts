@@ -58,7 +58,11 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     await sendVerificationEmail(email, token)
   } catch (error) {
     console.error('Failed to send verification email:', error)
-    await db.user.delete({ where: { id: user.id } })
+    try {
+      await db.user.delete({ where: { id: user.id } })
+    } catch (cleanupError) {
+      console.error('Failed to clean up user after email send failure:', cleanupError)
+    }
     return { errors: { email: ['Could not send verification email. Please try signing up again.'] } }
   }
 
