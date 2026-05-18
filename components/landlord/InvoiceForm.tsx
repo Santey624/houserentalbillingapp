@@ -1,12 +1,24 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { createInvoiceAction } from '@/app/actions/invoices'
+import { createInvoiceAction, updateInvoiceAction } from '@/app/actions/invoices'
 import { NEPALI_MONTHS } from '@/lib/constants'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
 import { Plus, Trash2, Zap, FileText } from 'lucide-react'
 
 interface Props {
+  initialData?: {
+    id: string
+    nepaliMonth: string
+    nepaliYear: string
+    invoiceDate: string
+    dueDate?: string | null
+    rentCost: number
+    serviceCharge: number
+    notes?: string | null
+    meters: MeterRow[]
+    costs: CostRow[]
+  }
   tenancyId?: string
   joinRequestId?: string
   tenantId?: string
@@ -19,14 +31,23 @@ interface Props {
 const inputCls = 'input-modern'
 const labelCls = 'field-label'
 
-export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, directBill, unitId, tenantName, defaultRate }: Props) {
+export default function InvoiceForm({
+  initialData,
+  tenancyId,
+  joinRequestId,
+  tenantId,
+  directBill,
+  unitId,
+  tenantName,
+  defaultRate,
+}: Props) {
   const [isPending, startTransition] = useTransition()
-  const [meters, setMeters] = useState<MeterRow[]>([
-    { id: 'm1', name: 'Meter 1', prev: '', curr: '' },
-  ])
-  const [costs, setCosts] = useState<CostRow[]>([
-    { id: 'c1', description: 'Water', amount: '0' },
-  ])
+  const [meters, setMeters] = useState<MeterRow[]>(
+    initialData?.meters ?? [{ id: 'm1', name: 'Meter 1', prev: '', curr: '' }]
+  )
+  const [costs, setCosts] = useState<CostRow[]>(
+    initialData?.costs ?? [{ id: 'c1', description: 'Water', amount: '0' }]
+  )
   const [error, setError] = useState<string | null>(null)
 
   const today = new Date().toISOString().split('T')[0]
@@ -56,6 +77,11 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
     setError(null)
     const form = e.currentTarget
     const fd = new FormData(form)
+
+    if (initialData) {
+      fd.set('id', initialData.id)
+    }
+
     if (tenancyId) fd.set('tenancyId', tenancyId)
     if (joinRequestId) fd.set('joinRequestId', joinRequestId)
     if (tenantId) fd.set('tenantId', tenantId)
@@ -66,7 +92,11 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
 
     startTransition(async () => {
       try {
-        await createInvoiceAction(fd)
+        if (initialData) {
+          await updateInvoiceAction(fd)
+        } else {
+          await createInvoiceAction(fd)
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Something went wrong')
       }
@@ -83,14 +113,16 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
       <div className="card-modern p-6 space-y-4">
         <div className="flex items-center gap-2 mb-1">
           <FileText size={16} className="text-muted-foreground" />
-          <h3 className="font-semibold text-foreground">Invoice Details</h3>
+          <h3 className="font-semibold text-foreground">
+            {initialData ? 'Edit Invoice' : 'Invoice Details'}
+          </h3>
         </div>
         <input type="hidden" name="tenantName" value={tenantName} />
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Billing Month</label>
-            <select name="nepaliMonth" required className="select-modern">
+            <select name="nepaliMonth" required defaultValue={initialData?.nepaliMonth} className="select-modern">
               {NEPALI_MONTHS.map((m, i) => (
                 <option key={i} value={m.split(' (')[0]}>{m}</option>
               ))}
@@ -98,29 +130,61 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
           </div>
           <div>
             <label className={labelCls}>Nepali Year</label>
-            <input name="nepaliYear" type="text" defaultValue="2082" required className={inputCls} />
+            <input
+              name="nepaliYear"
+              type="text"
+              defaultValue={initialData?.nepaliYear ?? '2082'}
+              required
+              className={inputCls}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Invoice Date</label>
-            <input name="invoiceDate" type="date" defaultValue={today} required className={inputCls} />
+            <input
+              name="invoiceDate"
+              type="date"
+              defaultValue={initialData?.invoiceDate ?? today}
+              required
+              className={inputCls}
+            />
           </div>
           <div>
             <label className={labelCls}>Due Date (optional)</label>
-            <input name="dueDate" type="date" className={inputCls} />
+            <input
+              name="dueDate"
+              type="date"
+              defaultValue={initialData?.dueDate ?? ''}
+              className={inputCls}
+            />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Rent (Rs.)</label>
-            <input name="rentCost" type="number" step="0.01" min="0" required defaultValue="0" className={inputCls} />
+            <input
+              name="rentCost"
+              type="number"
+              step="0.01"
+              min="0"
+              required
+              defaultValue={initialData?.rentCost ?? '0'}
+              className={inputCls}
+            />
           </div>
           <div>
             <label className={labelCls}>Service Charge (Rs.)</label>
-            <input name="serviceCharge" type="number" step="0.01" min="0" defaultValue="0" className={inputCls} />
+            <input
+              name="serviceCharge"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={initialData?.serviceCharge ?? '0'}
+              className={inputCls}
+            />
           </div>
         </div>
       </div>
@@ -225,7 +289,13 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
 
       <div>
         <label className={labelCls}>Notes (optional)</label>
-        <textarea name="notes" rows={2} className="textarea-modern" placeholder="Any additional notes..." />
+        <textarea
+          name="notes"
+          rows={2}
+          defaultValue={initialData?.notes ?? ''}
+          className="textarea-modern"
+          placeholder="Any additional notes..."
+        />
       </div>
 
       <button
@@ -233,7 +303,9 @@ export default function InvoiceForm({ tenancyId, joinRequestId, tenantId, direct
         disabled={isPending}
         className="btn-primary w-full h-12 text-base"
       >
-        {isPending ? 'Generating Invoice...' : 'Generate Invoice'}
+        {isPending
+          ? (initialData ? 'Updating Invoice...' : 'Generating Invoice...')
+          : (initialData ? 'Update Invoice' : 'Generate Invoice')}
       </button>
     </form>
   )

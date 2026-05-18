@@ -327,6 +327,110 @@ export async function createInvoiceAction(formData: FormData) {
   redirect(`/landlord/invoices/${invoice.id}`)
 }
 
+export async function updateInvoiceAction(formData: FormData) {
+  const session = await requireRole('LANDLORD')
+  const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
+  if (!landlord) throw new Error('Landlord not found')
+
+  const invoiceId = formData.get('id') as string
+  if (!invoiceId) throw new Error('Invoice ID is required')
+
+  const existingInvoice = await db.invoice.findFirst({
+    where: { id: invoiceId },
+    include: { tenancy: { include: { unit: { include: { building: true } } } } },
+  })
+
+  if (!existingInvoice || existingInvoice.tenancy.unit.building.landlordId !== landlord.id) {
+    throw new Error('Invoice not found or access denied')
+  }
+
+  const invoiceInput = InvoiceSchema.safeParse({
+    unitId: formData.get('unitId'),
+    tenantName: formData.get('tenantName'),
+    nepaliMonth: formData.get('nepaliMonth'),
+    nepaliYear: formData.get('nepaliYear'),
+    invoiceDate: formData.get('invoiceDate'),
+    dueDate: formData.get('dueDate') || undefined,
+    rentCost: formData.get('rentCost'),
+    serviceCharge: formData.get('serviceCharge'),
+    // For editing, we don't need tenancyId/tenantId as they are already set
+    tenancyId: existingInvoice.tenancyId,
+  })
+
+  if (!invoiceInput.success) {
+    throw new Error(invoiceInput.error.issues[0]?.message ?? 'Invoice details are invalid.')
+  }
+
+  const fields = invoiceInput.data
+  const notes = (formData.get('notes') as string) || null
+  const electricityRate = landlord.electricityRate
+
+  const meterRows = parseJsonRows<MeterRow[]>(formData.get('meters'), [])
+  const costRows = parseJsonRows<CostRow[]>(formData.get('costs'), [])
+  assertValidMeters(meterRows)
+
+  const { details: meterDetails, totalElec } = computeMeters(meterRows, electricityRate)
+  const additionalCosts = filterCosts(costRows)
+  const extraTotal = additionalCosts.reduce((s, c) => s + c.amount, 0)
+  const grandTotal = fields.rentCost + totalElec + fields.serviceCharge + extraTotal
+
+  await db.$transaction(async (tx) => {
+    // Delete existing line items (Cascade will take care of MeterReadings)
+    await tx.invoiceLineItem.deleteMany({ where: { invoiceId } })
+
+    let sortOrder = 0
+    await tx.invoice.update({
+      where: { id: invoiceId },
+      data: {
+        nepaliMonth: fields.nepaliMonth,
+        nepaliYear: fields.nepaliYear,
+        invoiceDate: fields.invoiceDate,
+        dueDate: fields.dueDate || null,
+        rentCost: fields.rentCost,
+        serviceCharge: fields.serviceCharge,
+        totalElec,
+        grandTotal,
+        notes,
+        lineItems: {
+          create: [
+            { description: 'House Rent', amount: fields.rentCost, sortOrder: sortOrder++ },
+            ...(fields.serviceCharge > 0
+              ? [{ description: 'Service / Minimum Charge', amount: fields.serviceCharge, sortOrder: sortOrder++ }]
+              : []),
+            ...meterDetails.map((m) => ({
+              description: `Electricity — ${m.name}`,
+              units: m.consumed,
+              rate: electricityRate,
+              amount: m.cost,
+              sortOrder: sortOrder++,
+              meterReading: {
+                create: {
+                  meterName: m.name,
+                  prevReading: m.prev,
+                  currReading: m.curr,
+                  consumed: m.consumed,
+                  rate: electricityRate,
+                },
+              },
+            })),
+            ...additionalCosts.map((c) => ({
+              description: c.desc,
+              amount: c.amount,
+              sortOrder: sortOrder++,
+            })),
+          ],
+        },
+      },
+    })
+  })
+
+  revalidatePath('/landlord/invoices')
+  revalidatePath(`/landlord/invoices/${invoiceId}`)
+  revalidatePath('/tenant/invoices')
+  revalidatePath(`/tenant/invoices/${invoiceId}`)
+  redirect(`/landlord/invoices/${invoiceId}`)
+}
+
 export async function updateInvoiceStatusAction(invoiceId: string, status: 'UNPAID' | 'PAID' | 'OVERDUE'): Promise<void> {
   const session = await requireRole('LANDLORD')
   const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })

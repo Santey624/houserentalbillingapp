@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, Mail, Plus, Home } from 'lucide-react'
+import { ChevronLeft, Mail, Plus, Home, Receipt } from 'lucide-react'
 
 export default async function BuildingDetailPage(props: {
   params: Promise<{ id: string }>
@@ -82,29 +82,50 @@ export default async function BuildingDetailPage(props: {
           {building.units.map((unit: any) => {
             const activeTenancy = unit.tenancies[0]
             return (
-              <Link
-                key={unit.id}
-                href={`/landlord/units/${unit.id}`}
-                className="card-modern card-modern-hover p-5 block"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="font-semibold text-foreground">Unit {unit.unitNumber}</span>
-                  <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
-                    activeTenancy
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-slate-100 text-slate-500 border-slate-200'
-                  }`}>
-                    {activeTenancy ? 'Occupied' : 'Vacant'}
-                  </span>
+              <div key={unit.id} className="card-modern p-5 flex flex-col">
+                <Link
+                  href={`/landlord/units/${unit.id}`}
+                  className="block group"
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="font-semibold text-foreground group-hover:text-accent transition-colors">Unit {unit.unitNumber}</span>
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
+                      activeTenancy
+                        ? 'bg-blue-50 text-blue-700 border-blue-200'
+                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                    }`}>
+                      {activeTenancy ? 'Occupied' : 'Vacant'}
+                    </span>
+                  </div>
+                  {unit.floor && <p className="text-xs text-muted-foreground mb-2">Floor: {unit.floor}</p>}
+                  {activeTenancy && (
+                    <p className="text-sm text-foreground mb-2">{activeTenancy.tenant.displayName}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mb-4">
+                    {unit._count.invoices} invoice{unit._count.invoices !== 1 ? 's' : ''}
+                  </p>
+                </Link>
+                
+                <div className="mt-auto pt-4 border-t border-border flex gap-2">
+                  {activeTenancy ? (
+                    <Link
+                      href={`/landlord/invoices/new?tenancyId=${activeTenancy.id}&unitId=${unit.id}`}
+                      className="btn-primary w-full py-1.5 text-xs h-8"
+                    >
+                      <Receipt size={12} />
+                      Generate Bill
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/landlord/invoices/new?unitId=${unit.id}`}
+                      className="btn-secondary w-full py-1.5 text-xs h-8"
+                    >
+                      <Receipt size={12} />
+                      Bill Directly
+                    </Link>
+                  )}
                 </div>
-                {unit.floor && <p className="text-xs text-muted-foreground mb-2">Floor: {unit.floor}</p>}
-                {activeTenancy && (
-                  <p className="text-sm text-foreground mb-2">{activeTenancy.tenant.displayName}</p>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {unit._count.invoices} invoice{unit._count.invoices !== 1 ? 's' : ''}
-                </p>
-              </Link>
+              </div>
             )
           })}
         </div>

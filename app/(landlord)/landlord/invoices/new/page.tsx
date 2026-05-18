@@ -3,7 +3,7 @@ import { getLandlord } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InvoiceForm from '@/components/landlord/InvoiceForm'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, UserPlus, Users } from 'lucide-react'
 
 type VacantUnit = {
   id: string
@@ -73,6 +73,46 @@ export default async function NewInvoicePage(props: {
             tenantName={tenant.displayName}
             defaultRate={landlord.electricityRate}
           />
+        </InvoicePageShell>
+      )
+    }
+  }
+
+  // Handle case where only unitId is provided (vacant unit)
+  if (unitId && !manualTenantName && !tenancyId && !joinRequestId && !tenantId) {
+    const unit = await db.unit.findFirst({
+      where: {
+        id: unitId,
+        building: { landlordId: landlord.id },
+        tenancies: { none: { status: 'ACTIVE' } },
+      },
+      include: { building: true },
+    })
+    if (unit) {
+      return (
+        <InvoicePageShell>
+          <div className="card-modern p-6">
+            <h3 className="font-semibold text-foreground mb-4">Direct Billing: {unit.building.name} · Unit {unit.unitNumber}</h3>
+            <form action="/landlord/invoices/new" className="space-y-4">
+              <input type="hidden" name="unitId" value={unitId} />
+              <div>
+                <label className="field-label">Tenant Name</label>
+                <input
+                  name="manualTenantName"
+                  type="text"
+                  required
+                  minLength={2}
+                  autoFocus
+                  placeholder="Enter tenant name for this bill"
+                  className="input-modern"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1.5">A temporary tenant account will be created automatically.</p>
+              </div>
+              <button type="submit" className="btn-primary w-full h-11">
+                Continue to Bill
+              </button>
+            </form>
+          </div>
         </InvoicePageShell>
       )
     }
@@ -171,143 +211,155 @@ export default async function NewInvoicePage(props: {
 
   return (
     <InvoicePageShell>
-      {/* Direct bill */}
-      <div className="card-modern p-6 mb-5">
-        <h3 className="font-semibold text-foreground mb-4">Create Bill Directly</h3>
-        {allVacantUnits.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Create a building and vacant unit first.</p>
-        ) : (
-          <form action="/landlord/invoices/new" className="space-y-4">
-            <div>
-              <label className="field-label">Tenant Name</label>
-              <input
-                name="manualTenantName"
-                type="text"
-                required
-                minLength={2}
-                placeholder="Enter tenant name"
-                className="input-modern"
-              />
-            </div>
-            <div>
-              <label className="field-label">Unit</label>
-              <select name="unitId" required className="select-modern">
-                {allVacantUnits.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.building.name} · Unit {unit.unitNumber}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button type="submit" className="btn-primary w-full h-11">
-              Continue to Bill
-            </button>
-          </form>
-        )}
-      </div>
-
-      {/* Existing tenants */}
-      <div className="card-modern p-6 mb-5">
-        <h3 className="font-semibold text-foreground mb-4">Use Existing Tenant</h3>
-        {tenancies.length === 0 && pendingRequests.length === 0 && registeredTenants.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No tenant accounts found. Ask the tenant to sign up first.</p>
-        ) : (
-          <div className="space-y-6">
-            {tenancies.length > 0 && (
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Active tenants</p>
-                {tenancies.map((t) => (
-                  <Link
-                    key={t.id}
-                    href={`/landlord/invoices/new?tenancyId=${t.id}&unitId=${t.unitId}`}
-                    className="flex items-center justify-between p-3.5 rounded-xl border border-border hover:border-accent/40 hover:bg-muted/50 transition-all group"
-                  >
-                    <div>
-                      <p className="font-medium text-sm text-foreground">{t.tenant.displayName}</p>
-                      <p className="text-xs text-muted-foreground">{t.unit.building.name} · Unit {t.unit.unitNumber}</p>
-                    </div>
-                    <span className="text-xs text-accent group-hover:underline underline-offset-2">Select</span>
-                  </Link>
-                ))}
+      <div className="grid grid-cols-1 gap-6">
+        {/* Direct bill */}
+        <div className="card-modern p-6 border-accent/20 bg-accent/[0.02]">
+          <div className="flex items-center gap-2 mb-4 text-accent">
+            <UserPlus size={18} />
+            <h3 className="font-bold text-foreground">Direct Billing (No account needed)</h3>
+          </div>
+          {allVacantUnits.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Create a building and vacant unit first to use direct billing.</p>
+          ) : (
+            <form action="/landlord/invoices/new" className="space-y-4">
+              <div>
+                <label className="field-label">Tenant Name</label>
+                <input
+                  name="manualTenantName"
+                  type="text"
+                  required
+                  minLength={2}
+                  placeholder="Who are you billing?"
+                  className="input-modern bg-white"
+                />
               </div>
-            )}
+              <div>
+                <label className="field-label">Select Unit</label>
+                <select name="unitId" required className="select-modern bg-white">
+                  {allVacantUnits.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.building.name} · Unit {unit.unitNumber}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <button type="submit" className="btn-primary w-full h-11">
+                Start Generating Bill
+              </button>
+            </form>
+          )}
+        </div>
 
-            {pendingRequests.length > 0 && (
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Pending requests</p>
-                {pendingRequests.map((req) => {
-                  const requestVacantUnits = vacantUnitsByBuilding[req.building.id] ?? []
-                  return (
-                    <div key={req.id} className="p-3.5 rounded-xl border border-blue-200 bg-blue-50/50">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <p className="font-medium text-sm text-foreground">{req.tenant.displayName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {req.building.name}{req.unit ? ` · Unit ${req.unit.unitNumber}` : ' · No unit selected'}
-                          </p>
-                        </div>
-                        {req.unitId && (
-                          <Link
-                            href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${req.unitId}`}
-                            className="text-xs text-accent hover:underline underline-offset-2"
-                          >
-                            Select
-                          </Link>
-                        )}
-                      </div>
-                      {!req.unitId && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {requestVacantUnits.length === 0 ? (
-                            <p className="text-xs text-muted-foreground">No vacant units in this building.</p>
-                          ) : (
-                            requestVacantUnits.map((u) => (
+        {/* Existing tenants */}
+        <div className="card-modern p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Users size={18} className="text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">Bill Registered Tenant</h3>
+          </div>
+          {tenancies.length === 0 && pendingRequests.length === 0 && registeredTenants.length === 0 ? (
+            <p className="text-muted-foreground text-sm">No registered tenants found.</p>
+          ) : (
+            <div className="space-y-8">
+              {tenancies.length > 0 && (
+                <div className="space-y-3">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Active Tenancies</p>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {tenancies.map((t) => (
+                      <Link
+                        key={t.id}
+                        href={`/landlord/invoices/new?tenancyId=${t.id}&unitId=${t.unitId}`}
+                        className="flex flex-col p-3 rounded-xl border border-border hover:border-accent/40 hover:bg-muted/50 transition-all group"
+                      >
+                        <p className="font-semibold text-sm text-foreground">{t.tenant.displayName}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{t.unit.building.name} · Unit {t.unit.unitNumber}</p>
+                        <span className="text-[10px] text-accent font-medium mt-2 opacity-0 group-hover:opacity-100 transition-opacity">Select &rarr;</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {pendingRequests.length > 0 && (
+                <div className="space-y-3">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Pending Join Requests</p>
+                  <div className="space-y-2">
+                    {pendingRequests.map((req) => {
+                      const requestVacantUnits = vacantUnitsByBuilding[req.building.id] ?? []
+                      return (
+                        <div key={req.id} className="p-4 rounded-xl border border-blue-100 bg-blue-50/30">
+                          <div className="flex items-center justify-between gap-3 mb-3">
+                            <div>
+                              <p className="font-semibold text-sm text-foreground">{req.tenant.displayName}</p>
+                              <p className="text-[10px] text-muted-foreground">
+                                Request for: {req.building.name}
+                              </p>
+                            </div>
+                            {req.unitId && (
                               <Link
-                                key={u.id}
-                                href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${u.id}`}
-                                className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent/40 transition-colors"
+                                href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${req.unitId}`}
+                                className="btn-primary py-1 px-3 text-[10px] h-7"
                               >
-                                Unit {u.unitNumber}
+                                Select Unit {req.unit?.unitNumber}
+                              </Link>
+                            )}
+                          </div>
+                          {!req.unitId && (
+                            <div className="flex flex-wrap gap-1.5">
+                              {requestVacantUnits.length === 0 ? (
+                                <p className="text-[10px] text-muted-foreground italic">No vacant units available.</p>
+                              ) : (
+                                requestVacantUnits.map((u) => (
+                                  <Link
+                                    key={u.id}
+                                    href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${u.id}`}
+                                    className="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
+                                  >
+                                    Assign Unit {u.unitNumber}
+                                  </Link>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {registeredTenants.length > 0 && (
+                <div className="space-y-3">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Other Registered Tenants</p>
+                  <div className="space-y-3">
+                    {registeredTenants.map((tenant) => (
+                      <div key={tenant.id} className="p-3.5 rounded-xl border border-border bg-muted/20">
+                        <div className="mb-2">
+                          <p className="font-semibold text-sm text-foreground">{tenant.displayName}</p>
+                          <p className="text-[10px] text-muted-foreground">{tenant.user.email}</p>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {allVacantUnits.length === 0 ? (
+                            <p className="text-[10px] text-muted-foreground italic">No units available.</p>
+                          ) : (
+                            allVacantUnits.map((unit) => (
+                              <Link
+                                key={unit.id}
+                                href={`/landlord/invoices/new?tenantId=${tenant.id}&unitId=${unit.id}`}
+                                className="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
+                              >
+                                {unit.building.name} · Unit {unit.unitNumber}
                               </Link>
                             ))
                           )}
                         </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-
-            {registeredTenants.length > 0 && (
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-3">Registered tenants</p>
-                {allVacantUnits.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No vacant units available for a new bill.</p>
-                ) : (
-                  registeredTenants.map((tenant) => (
-                    <div key={tenant.id} className="p-3.5 rounded-xl border border-border bg-muted/30">
-                      <div>
-                        <p className="font-medium text-sm text-foreground">{tenant.displayName}</p>
-                        <p className="text-xs text-muted-foreground">{tenant.user.email}</p>
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {allVacantUnits.map((unit) => (
-                          <Link
-                            key={unit.id}
-                            href={`/landlord/invoices/new?tenantId=${tenant.id}&unitId=${unit.id}`}
-                            className="rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:border-accent/40 transition-colors"
-                          >
-                            {unit.building.name} · Unit {unit.unitNumber}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </InvoicePageShell>
   )

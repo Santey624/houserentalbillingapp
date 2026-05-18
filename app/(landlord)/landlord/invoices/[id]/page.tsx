@@ -7,7 +7,7 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import { verifyPaymentAction } from '@/app/actions/payments'
 import { deleteInvoiceAction, updateInvoiceStatusAction } from '@/app/actions/invoices'
 import DownloadInvoiceButton from '@/components/landlord/DownloadInvoiceButton'
-import { ChevronLeft, CheckCircle2, XCircle, ExternalLink } from 'lucide-react'
+import { ChevronLeft, CheckCircle2, XCircle, ExternalLink, Pencil } from 'lucide-react'
 
 export default async function LandlordInvoiceDetailPage(props: {
   params: Promise<{ id: string }>
@@ -60,6 +60,13 @@ export default async function LandlordInvoiceDetailPage(props: {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={invoice.status} size="base" />
+          <Link
+            href={`/landlord/invoices/${id}/edit`}
+            className="btn-secondary py-1.5 px-3 text-xs"
+          >
+            <Pencil size={12} />
+            Edit
+          </Link>
           <DownloadInvoiceButton
             invoice={{
               invoiceNumber: invoice.invoiceNumber,
