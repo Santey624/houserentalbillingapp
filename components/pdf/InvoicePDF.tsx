@@ -127,7 +127,9 @@ export default function InvoicePDF({ data }: Props) {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.brandBlock}>
-            <Image src="/gharkhata-logo.png" style={styles.logo} />
+            <View style={{ width: 120 }}>
+              <Image src="/gharkhata-logo.png" style={styles.logo} />
+            </View>
             <Text style={styles.brandTagline}>Rental billing and property management</Text>
           </View>
           <View style={styles.headerRight}>
