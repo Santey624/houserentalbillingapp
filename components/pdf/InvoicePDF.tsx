@@ -2,6 +2,7 @@ import { Document, Page, View, Text, Font, Image } from "@react-pdf/renderer";
 import { InvoiceData } from "@/lib/invoiceTypes";
 import { styles } from "./pdfStyles";
 
+// Register fonts with absolute paths for better compatibility
 Font.register({
   family: "Playfair Display",
   fonts: [
@@ -16,6 +17,7 @@ Font.register({
   fonts: [
     { src: "/fonts/dm-sans-latin-400-normal.woff" },
     { src: "/fonts/dm-sans-latin-700-normal.woff", fontWeight: 700 },
+    // Using normal as fallback for italic if specific woff not present
     { src: "/fonts/dm-sans-latin-400-normal.woff", fontStyle: "italic" },
   ],
 });
@@ -120,7 +122,8 @@ export default function InvoicePDF({ data }: Props) {
   const unitLabel = meta?.unitNumber ? `Unit ${meta.unitNumber}` : "Unit not assigned";
   const floorLabel = meta?.floor ? `Floor ${meta.floor}` : "";
   const bankLines = paymentDetailLines(landlord.bankDetails);
-  const hasPaymentMethods = bankLines.length > 0 || Boolean(landlord.qrImageUrl);
+  const qrImage = landlord.qrImageUrl && landlord.qrImageUrl.startsWith('http') ? landlord.qrImageUrl : null;
+  const hasPaymentMethods = bankLines.length > 0 || Boolean(qrImage);
 
   return (
     <Document title={`${invoiceNum} - ${invoice.tenantName}`}>
@@ -234,9 +237,9 @@ export default function InvoicePDF({ data }: Props) {
                     ))}
                   </View>
                 ) : null}
-                {landlord.qrImageUrl ? (
+                {qrImage ? (
                   <View style={styles.qrBox}>
-                    <Image src={landlord.qrImageUrl} style={styles.qrImage} />
+                    <Image src={qrImage} style={styles.qrImage} />
                     <Text style={styles.qrLabel}>Payment QR</Text>
                   </View>
                 ) : null}
