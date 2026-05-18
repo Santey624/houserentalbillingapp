@@ -15,8 +15,8 @@ function baseUrl() {
 async function sendEmail(payload: { from: string; to: string; subject: string; html: string }) {
   const response = await getResend().emails.send(payload)
   if (response.error) {
-    const errorName = response.error.name ? `${response.error.name}: ` : ''
-    throw new Error(`Resend email send failed: ${errorName}${response.error.message}`)
+    const errorDetails = [response.error.name, response.error.message].filter(Boolean).join(': ')
+    throw new Error(`Resend email send failed: ${errorDetails}`)
   }
 }
 
