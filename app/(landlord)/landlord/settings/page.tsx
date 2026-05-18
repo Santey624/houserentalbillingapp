@@ -21,6 +21,12 @@ export default function LandlordSettingsPage() {
         </div>
       )}
 
+      {state?.errors?._ && (
+        <div className="alert-error mb-6">
+          {state.errors._[0]}
+        </div>
+      )}
+
       <form action={action} className="space-y-6">
         {/* Profile section */}
         <div className="card-modern p-6">
@@ -75,6 +81,9 @@ export default function LandlordSettingsPage() {
                 accept="image/*"
                 className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1.5 file:px-4 file:rounded-lg file:border file:border-border file:bg-muted file:text-foreground file:text-xs file:cursor-pointer hover:file:bg-muted/80 transition-colors"
               />
+              {state?.errors?.qrImage && (
+                <p className="field-error">{state.errors.qrImage[0]}</p>
+              )}
             </div>
           </div>
         </div>
