@@ -54,7 +54,17 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   }
 
-  await sendVerificationEmail(email, token)
+  try {
+    await sendVerificationEmail(email, token)
+  } catch (error) {
+    console.error('Failed to send verification email:', error)
+    try {
+      await db.user.delete({ where: { id: user.id } })
+    } catch (cleanupError) {
+      console.error('Failed to clean up user after email send failure:', cleanupError)
+    }
+    return { errors: { email: ['Could not send verification email. Please try signing up again.'] } }
+  }
 
   redirect('/auth/verify?sent=1')
 }
@@ -126,7 +136,15 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
       data: { userId: user.id, token, type: 'password_reset', expiresAt },
     })
 
-    await sendPasswordResetEmail(email, token)
+    try {
+      await sendPasswordResetEmail(email, token)
+    } catch (error) {
+      console.error(`Failed to send password reset email for user ${user.id}:`, error)
+      const deletedTokens = await db.verificationToken.deleteMany({
+        where: { userId: user.id, type: 'password_reset' },
+      })
+      console.warn(`Cleaned up ${deletedTokens.count} password reset token(s) for user ${user.id} after email failure.`)
+    }
   }
 
   // Always return success to avoid email enumeration
