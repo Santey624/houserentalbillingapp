@@ -12,9 +12,16 @@ function baseUrl() {
   return process.env.AUTH_URL ?? 'http://localhost:3000'
 }
 
+async function sendEmail(payload: { from: string; to: string; subject: string; html: string }) {
+  const response = await getResend().emails.send(payload)
+  if (response.error) {
+    throw new Error(response.error.message)
+  }
+}
+
 export async function sendVerificationEmail(email: string, token: string) {
   const url = `${baseUrl()}/auth/verify?token=${token}`
-  await getResend().emails.send({
+  await sendEmail({
     from: from(),
     to: email,
     subject: 'Verify your AKS Rental account',
@@ -24,7 +31,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${baseUrl()}/auth/reset/${token}`
-  await getResend().emails.send({
+  await sendEmail({
     from: from(),
     to: email,
     subject: 'Reset your AKS Rental password',

@@ -54,7 +54,13 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   }
 
-  await sendVerificationEmail(email, token)
+  try {
+    await sendVerificationEmail(email, token)
+  } catch (error) {
+    console.error('Failed to send verification email:', error)
+    await db.user.delete({ where: { id: user.id } })
+    return { errors: { email: ['Could not send verification email. Please try signing up again.'] } }
+  }
 
   redirect('/auth/verify?sent=1')
 }
@@ -126,7 +132,14 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
       data: { userId: user.id, token, type: 'password_reset', expiresAt },
     })
 
-    await sendPasswordResetEmail(email, token)
+    try {
+      await sendPasswordResetEmail(email, token)
+    } catch (error) {
+      console.error('Failed to send password reset email:', error)
+      await db.verificationToken.deleteMany({
+        where: { userId: user.id, type: 'password_reset' },
+      })
+    }
   }
 
   // Always return success to avoid email enumeration
