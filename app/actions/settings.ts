@@ -8,6 +8,10 @@ import { uploadBlob } from '@/lib/blob'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : 'Unknown error'
+}
+
 export async function updateLandlordSettingsAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireRole('LANDLORD')
   const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
@@ -19,13 +23,28 @@ export async function updateLandlordSettingsAction(prevState: ActionState, formD
   let qrImageUrl = landlord.qrImageUrl
   const qrFile = formData.get('qrImage') as File | null
   if (qrFile && qrFile.size > 0) {
-    qrImageUrl = await uploadBlob(qrFile, 'qr')
+    try {
+      qrImageUrl = await uploadBlob(qrFile, 'qr')
+    } catch (error) {
+      console.error('Failed to upload landlord QR image', { landlordId: landlord.id, error })
+      return {
+        errors: {
+          qrImage: ['Failed to upload QR image. Please try again with a valid image file.'],
+          _: [`Could not save settings: ${getErrorMessage(error)}`],
+        },
+      }
+    }
   }
 
-  await db.landlord.update({
-    where: { id: landlord.id },
-    data: { ...parsed.data, qrImageUrl },
-  })
+  try {
+    await db.landlord.update({
+      where: { id: landlord.id },
+      data: { ...parsed.data, qrImageUrl },
+    })
+  } catch (error) {
+    console.error('Failed to update landlord settings', { landlordId: landlord.id, error })
+    return { errors: { _: [`Could not save settings: ${getErrorMessage(error)}`] } }
+  }
 
   revalidatePath('/landlord/settings')
   return { message: 'Settings saved.' }
