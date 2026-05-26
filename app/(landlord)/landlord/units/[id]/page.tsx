@@ -4,7 +4,8 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { formatRs } from '@/lib/utils'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { ChevronLeft, FileText, User } from 'lucide-react'
+import { ChevronLeft, FileText, User, UserMinus } from 'lucide-react'
+import { endTenancyAction } from '@/app/actions/tenancies'
 
 export default async function UnitDetailPage(props: {
   params: Promise<{ id: string }>
@@ -32,7 +33,7 @@ export default async function UnitDetailPage(props: {
   })
   if (!unit) notFound()
 
-  const activeTenancy = unit.tenancies.find((t: (typeof unit.tenancies)[number]) => t.status === 'ACTIVE')
+  const activeTenancy = unit.tenancies.find((t: any) => t.status === 'ACTIVE')
 
   return (
     <div className="p-5 sm:p-8 max-w-3xl">
@@ -60,7 +61,20 @@ export default async function UnitDetailPage(props: {
 
       {/* Current Tenant */}
       <div className="card-modern p-6 mb-6">
-        <h2 className="font-semibold text-foreground mb-4">Current Tenant</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-foreground">Current Tenant</h2>
+          {activeTenancy && (
+            <form action={endTenancyAction.bind(null, activeTenancy.id)}>
+              <button 
+                type="submit" 
+                className="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors font-medium"
+              >
+                <UserMinus size={14} />
+                End Tenancy
+              </button>
+            </form>
+          )}
+        </div>
         {activeTenancy ? (
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -92,7 +106,7 @@ export default async function UnitDetailPage(props: {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {unit.invoices.map((inv: (typeof unit.invoices)[number]) => (
+            {unit.invoices.map((inv: any) => (
               <Link
                 key={inv.id}
                 href={`/landlord/invoices/${inv.id}`}

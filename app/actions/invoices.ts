@@ -200,10 +200,6 @@ export async function createInvoiceAction(formData: FormData) {
     if (!selectedUnit) {
       throw new Error('Selected unit was not found')
     }
-    const occupiedByAnotherTenant = selectedUnit.tenancies.some((t) => t.tenantId !== tenant.id)
-    if (occupiedByAnotherTenant) {
-      throw new Error('Selected unit already has an active tenant')
-    }
 
     tenancyForInvoice = await db.tenancy.findFirst({
       where: { tenantId: tenant.id, unitId: fields.unitId, status: 'ACTIVE' },
@@ -221,14 +217,10 @@ export async function createInvoiceAction(formData: FormData) {
       where: { id: fields.unitId, building: { landlordId: landlord.id } },
       include: {
         building: true,
-        tenancies: { where: { status: 'ACTIVE' } },
       },
     })
     if (!selectedUnit) {
       throw new Error('Selected unit was not found')
-    }
-    if (selectedUnit.tenancies.length > 0) {
-      throw new Error('Selected unit already has an active tenant')
     }
 
     const manualEmail = `manual-${crypto.randomUUID()}@gharkhata.local`

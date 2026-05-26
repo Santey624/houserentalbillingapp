@@ -1,10 +1,27 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { createInvoiceAction, updateInvoiceAction } from '@/app/actions/invoices'
 import { NEPALI_MONTHS } from '@/lib/constants'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
-import { Plus, Trash2, Zap, FileText } from 'lucide-react'
+import { Plus, Trash2, Zap, FileText, User, Home } from 'lucide-react'
+
+interface TenantOption {
+  id: string
+  displayName: string
+  tenancyId?: string
+  joinRequestId?: string
+  unitId: string | null
+  unitInfo: string
+  type: 'ACTIVE_TENANT' | 'PENDING_REQUEST' | 'OTHER_TENANT'
+}
+
+interface UnitOption {
+  id: string
+  unitNumber: string
+  building: { name: string }
+  tenancies: { id: string, tenant: { displayName: string } }[]
+}
 
 interface Props {
   initialData?: {
@@ -33,15 +50,25 @@ const labelCls = 'field-label'
 
 export default function InvoiceForm({
   initialData,
-  tenancyId,
-  joinRequestId,
-  tenantId,
-  directBill,
-  unitId,
-  tenantName,
+  tenancyId: initialTenancyId,
+  joinRequestId: initialJoinRequestId,
+  tenantId: initialTenantId,
+  directBill: initialDirectBill,
+  unitId: initialUnitId,
+  tenantName: initialTenantName,
   defaultRate,
 }: Props) {
   const [isPending, startTransition] = useTransition()
+  const [tenants, setTenants] = useState<TenantOption[]>([])
+  const [allUnits, setAllUnits] = useState<UnitOption[]>([])
+  
+  const [isManualEntry, setIsManualEntry] = useState<boolean>(initialDirectBill || false)
+  const [selectedTenantId, setSelectedTenantId] = useState<string>(initialTenantId || '')
+  const [selectedTenancyId, setSelectedTenancyId] = useState<string>(initialTenancyId || '')
+  const [selectedJoinRequestId, setSelectedJoinRequestId] = useState<string>(initialJoinRequestId || '')
+  const [selectedUnitId, setSelectedUnitId] = useState<string>(initialUnitId || '')
+  const [selectedTenantName, setSelectedTenantName] = useState<string>(initialTenantName || '')
+
   const [meters, setMeters] = useState<MeterRow[]>(
     initialData?.meters ?? [{ id: 'm1', name: 'Meter 1', prev: '', curr: '' }]
   )
@@ -51,6 +78,58 @@ export default function InvoiceForm({
   const [error, setError] = useState<string | null>(null)
 
   const today = new Date().toISOString().split('T')[0]
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [tenantsRes, unitsRes] = await Promise.all([
+          fetch('/api/tenants'),
+          fetch('/api/units')
+        ])
+        if (tenantsRes.ok) {
+          const data = await tenantsRes.json()
+          setTenants(data)
+        }
+        if (unitsRes.ok) {
+          const data = await unitsRes.json()
+          setAllUnits(data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch data:', err)
+      }
+    }
+    if (!initialData) {
+      fetchData()
+    }
+  }, [initialData])
+
+  function handleTenantChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    const tId = e.target.value
+    
+    if (tId === 'MANUAL') {
+      setIsManualEntry(true)
+      setSelectedTenantId('')
+      setSelectedTenancyId('')
+      setSelectedJoinRequestId('')
+      setSelectedUnitId('')
+      setSelectedTenantName('')
+      return
+    }
+
+    setIsManualEntry(false)
+    const tenant = tenants.find(t => t.id === tId)
+    if (tenant) {
+      setSelectedTenantId(tenant.id)
+      setSelectedTenancyId(tenant.tenancyId || '')
+      setSelectedJoinRequestId(tenant.joinRequestId || '')
+      setSelectedUnitId(tenant.unitId || '')
+      setSelectedTenantName(tenant.displayName)
+    }
+  }
+
+  function handleUnitChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedUnitId(e.target.value)
+  }
 
   function addMeter() {
     setMeters((prev) => [...prev, { id: `m${Date.now()}`, name: '', prev: '', curr: '' }])
@@ -82,13 +161,28 @@ export default function InvoiceForm({
       fd.set('id', initialData.id)
     }
 
-    if (tenancyId) fd.set('tenancyId', tenancyId)
-    if (joinRequestId) fd.set('joinRequestId', joinRequestId)
-    if (tenantId) fd.set('tenantId', tenantId)
-    if (directBill) fd.set('directBill', 'true')
-    fd.set('unitId', unitId)
+    if (isManualEntry) {
+      fd.set('directBill', 'true')
+    } else {
+      if (selectedTenancyId) fd.set('tenancyId', selectedTenancyId)
+      if (selectedJoinRequestId) fd.set('joinRequestId', selectedJoinRequestId)
+      if (selectedTenantId) fd.set('tenantId', selectedTenantId)
+    }
+    
+    fd.set('unitId', selectedUnitId)
+    fd.set('tenantName', selectedTenantName)
     fd.set('meters', JSON.stringify(meters))
     fd.set('costs', JSON.stringify(costs))
+
+    if (!selectedUnitId) {
+      setError('Please select a unit.')
+      return
+    }
+
+    if (!selectedTenantName.trim()) {
+      setError('Please provide a tenant name.')
+      return
+    }
 
     startTransition(async () => {
       try {
@@ -109,6 +203,77 @@ export default function InvoiceForm({
         <div className="alert-error">{error}</div>
       )}
 
+      {/* Tenant & Unit Selection */}
+      {!initialData && (
+        <div className="card-modern p-6 space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <User size={16} className="text-muted-foreground" />
+            <h3 className="font-semibold text-foreground">Tenant & Unit Selection</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Select Tenant</label>
+              <select 
+                value={isManualEntry ? 'MANUAL' : selectedTenantId} 
+                onChange={handleTenantChange}
+                required
+                className="select-modern"
+              >
+                <option value="" disabled>Choose a tenant...</option>
+                <optgroup label="Registered / Connected">
+                  {tenants.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.displayName} ({t.unitInfo})
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="Direct Billing">
+                  <option value="MANUAL">Other / New Tenant (No Connection)</option>
+                </optgroup>
+              </select>
+            </div>
+
+            {isManualEntry && (
+              <div>
+                <label className={labelCls}>Select Unit</label>
+                <select 
+                  value={selectedUnitId} 
+                  onChange={handleUnitChange}
+                  required
+                  className="select-modern"
+                >
+                  <option value="" disabled>Choose a unit...</option>
+                  {allUnits.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.building.name} - Unit {u.unitNumber} {u.tenancies.length > 0 ? `(Occupied by ${u.tenancies[0].tenant.displayName})` : '(Vacant)'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {isManualEntry && (
+            <div>
+              <label className={labelCls}>New Tenant Name</label>
+              <input
+                type="text"
+                value={selectedTenantName}
+                onChange={(e) => setSelectedTenantName(e.target.value)}
+                placeholder="Who are you billing?"
+                required
+                className={inputCls}
+              />
+            </div>
+          )}
+
+          {!isManualEntry && selectedTenantId && !selectedUnitId && (
+            <p className="text-xs text-red-500 mt-1">This tenant does not have a unit assigned yet.</p>
+          )}
+        </div>
+      )}
+
       {/* Basic Details */}
       <div className="card-modern p-6 space-y-4">
         <div className="flex items-center gap-2 mb-1">
@@ -117,7 +282,14 @@ export default function InvoiceForm({
             {initialData ? 'Edit Invoice' : 'Invoice Details'}
           </h3>
         </div>
-        <input type="hidden" name="tenantName" value={tenantName} />
+        
+        {/* If editing, show the name as static */}
+        {initialData && (
+          <div>
+            <label className={labelCls}>Tenant Name</label>
+            <p className="text-sm font-medium">{selectedTenantName}</p>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
