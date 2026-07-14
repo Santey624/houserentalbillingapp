@@ -8,9 +8,8 @@ interface Building {
   id: string
   name: string
   address: string
-  contact: string
   landlord: { displayName: string }
-  units: { id: string; unitNumber: string; tenancies: unknown[] }[]
+  units: { id: string; unitNumber: string; isVacant: boolean }[]
 }
 
 function JoinForm({ building, onClose }: { building: Building; onClose: () => void }) {
@@ -25,15 +24,15 @@ function JoinForm({ building, onClose }: { building: Building; onClose: () => vo
     )
   }
 
-  const vacantUnits = building.units.filter((u) => u.tenancies.length === 0)
+  const vacantUnits = building.units.filter((u) => u.isVacant)
 
   return (
     <form action={action} className="mt-4 p-4 bg-muted/50 rounded-xl space-y-3 border border-border">
       <input type="hidden" name="buildingId" value={building.id} />
       {vacantUnits.length > 0 && (
         <div>
-          <label className="field-label">Preferred Unit (optional)</label>
-          <select name="unitId" className="select-modern">
+          <label className="field-label" htmlFor={`unit-${building.id}`}>Preferred Unit (optional)</label>
+          <select id={`unit-${building.id}`} name="unitId" className="select-modern">
             <option value="">No preference</option>
             {vacantUnits.map((u) => (
               <option key={u.id} value={u.id}>Unit {u.unitNumber}</option>
@@ -77,6 +76,7 @@ export default function TenantBuildingsPage() {
     setSearched(true)
     try {
       const res = await fetch(`/api/buildings/search?q=${encodeURIComponent(search)}`)
+      if (!res.ok) throw new Error('Search failed')
       const data = await res.json()
       setBuildings(data.buildings || [])
     } catch {
@@ -97,9 +97,12 @@ export default function TenantBuildingsPage() {
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
+            aria-label="Search buildings"
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            minLength={2}
+            maxLength={80}
             placeholder="Search by building name or landlord..."
             className="input-modern !pl-11"
           />
@@ -152,7 +155,7 @@ export default function TenantBuildingsPage() {
             </div>
             {b.units.length > 0 && (
               <p className="text-xs text-muted-foreground ml-13 mt-2">
-                {b.units.filter((u) => u.tenancies.length === 0).length} vacant unit{b.units.filter((u) => u.tenancies.length === 0).length !== 1 ? 's' : ''} of {b.units.length}
+                {b.units.filter((u) => u.isVacant).length} vacant unit{b.units.filter((u) => u.isVacant).length !== 1 ? 's' : ''} of {b.units.length}
               </p>
             )}
             {joinBuilding?.id === b.id && (

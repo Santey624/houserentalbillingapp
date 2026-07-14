@@ -177,7 +177,7 @@ export default async function LandlordInvoiceDetailPage(props: {
             )}
             {pendingPayment.proofImageUrl && (
               <a
-                href={pendingPayment.proofImageUrl}
+                href={`/api/uploads/payment-proof/${pendingPayment.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-accent hover:underline underline-offset-2"

@@ -5,9 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { PaymentSchema } from '@/lib/validations'
-import { uploadBlob } from '@/lib/blob'
+import { deleteBlob, uploadPaymentProof } from '@/lib/blob'
+import { UploadValidationError } from '@/lib/upload-validation'
+import { enforceRateLimit, RateLimitExceededError } from '@/lib/rate-limit'
 import { createNotification } from './notifications'
 import { sendPaymentProofNotification, sendPaymentVerificationResult } from '@/lib/email'
+import { Prisma } from '@prisma/client'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
 
@@ -15,6 +18,18 @@ export async function submitPaymentProofAction(prevState: ActionState, formData:
   const session = await requireRole('TENANT')
   const tenant = await db.tenant.findUnique({ where: { userId: session.user.id } })
   if (!tenant) return { errors: { _: ['Tenant profile not found'] } }
+  try {
+    await enforceRateLimit(session.user.id, {
+      scope: 'upload:payment-proof',
+      limit: 10,
+      windowMs: 60 * 60 * 1000,
+    })
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return { errors: { _: [error.message] } }
+    }
+    throw error
+  }
 
   const parsed = PaymentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
@@ -30,31 +45,56 @@ export async function submitPaymentProofAction(prevState: ActionState, formData:
       },
     },
   })
-  if (!invoice || invoice.tenancy.tenant.id !== tenant.id) {
+  if (
+    !invoice ||
+    invoice.tenancy.tenant.id !== tenant.id ||
+    !['UNPAID', 'OVERDUE'].includes(invoice.status)
+  ) {
     return { errors: { _: ['Invoice not found'] } }
   }
 
   let proofImageUrl: string | undefined
   const proofFile = formData.get('proof') as File | null
   if (proofFile && proofFile.size > 0) {
-    proofImageUrl = await uploadBlob(proofFile, 'payment-proofs')
+    try {
+      proofImageUrl = await uploadPaymentProof(proofFile)
+    } catch (error) {
+      if (error instanceof UploadValidationError) {
+        return { errors: { proof: [error.message] } }
+      }
+      throw error
+    }
   }
 
-  await db.$transaction([
-    db.payment.create({
-      data: {
-        invoiceId: parsed.data.invoiceId,
-        method: parsed.data.method,
-        referenceNum: parsed.data.referenceNum,
-        proofImageUrl,
-        amount: parsed.data.amount,
-      },
-    }),
-    db.invoice.update({
-      where: { id: parsed.data.invoiceId },
-      data: { status: 'PAYMENT_SUBMITTED' },
-    }),
-  ])
+  try {
+    await db.$transaction(async (tx) => {
+      const transitioned = await tx.invoice.updateMany({
+        where: {
+          id: parsed.data.invoiceId,
+          status: { in: ['UNPAID', 'OVERDUE'] },
+          tenancy: { tenantId: tenant.id },
+        },
+        data: { status: 'PAYMENT_SUBMITTED' },
+      })
+      if (transitioned.count !== 1) throw new Error('Invoice is no longer payable.')
+
+      await tx.payment.create({
+        data: {
+          invoiceId: parsed.data.invoiceId,
+          method: parsed.data.method,
+          referenceNum: parsed.data.referenceNum,
+          proofImageUrl,
+          amount: invoice.grandTotal,
+        },
+      })
+    })
+  } catch (error) {
+    if (proofImageUrl) await deleteBlob(proofImageUrl)
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return { errors: { _: ['A payment is already pending for this invoice.'] } }
+    }
+    throw error
+  }
 
   const landlordEmail = invoice.tenancy.unit.building.landlord.user.email
   const landlordUserId = invoice.tenancy.unit.building.landlord.user.id
@@ -100,21 +140,24 @@ export async function verifyPaymentAction(paymentId: string, approved: boolean, 
   const newStatus = approved ? 'VERIFIED' : 'REJECTED'
   const invoiceStatus = approved ? 'PAID' : 'UNPAID'
 
-  await db.$transaction([
-    db.payment.update({
-      where: { id: paymentId },
+  await db.$transaction(async (tx) => {
+    const transitioned = await tx.payment.updateMany({
+      where: { id: paymentId, status: 'PENDING_VERIFICATION' },
       data: {
         status: newStatus,
         verifiedBy: session.user.id,
         verifiedAt: new Date(),
         rejectionNote: rejectionNote || null,
       },
-    }),
-    db.invoice.update({
-      where: { id: payment.invoiceId },
+    })
+    if (transitioned.count !== 1) throw new Error('Payment has already been reviewed.')
+
+    const invoiceTransitioned = await tx.invoice.updateMany({
+      where: { id: payment.invoiceId, status: 'PAYMENT_SUBMITTED' },
       data: { status: invoiceStatus },
-    }),
-  ])
+    })
+    if (invoiceTransitioned.count !== 1) throw new Error('Invoice state changed; review again.')
+  })
 
   const tenantEmail = payment.invoice.tenancy.tenant.user.email
   const tenantUserId = payment.invoice.tenancy.tenant.user.id

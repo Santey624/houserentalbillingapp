@@ -214,16 +214,11 @@ export default async function NewInvoicePage(props: {
       orderBy: { createdAt: 'desc' },
       take: 100,
     }) : Promise.resolve([]),
-    mode === 'existing' ? db.tenant.findMany({
-      where: {
-        tenancies: {
-          none: { status: 'ACTIVE', unit: { building: { landlordId: landlord.id } } },
-        },
-      },
-      select: { id: true, displayName: true, user: { select: { email: true } } },
-      orderBy: { createdAt: 'desc' },
-      take: 100,
-    }) : Promise.resolve([]),
+    Promise.resolve([] as Array<{
+      id: string
+      displayName: string
+      user: { email: string }
+    }>),
     db.unit.findMany({
       where: {
         building: { landlordId: landlord.id },

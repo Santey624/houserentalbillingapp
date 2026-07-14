@@ -17,17 +17,8 @@ function createPrismaClient(): PrismaClient {
   })
 }
 
-// Lazy singleton — only created on first access, not at module load time
-export function getDb(): PrismaClient {
-  if (!globalForPrisma.prisma) {
-    globalForPrisma.prisma = createPrismaClient()
-  }
-  return globalForPrisma.prisma
-}
+export const db = globalForPrisma.prisma ?? createPrismaClient()
 
-// Convenience proxy that delegates to the lazy singleton
-export const db: PrismaClient = new Proxy({} as PrismaClient, {
-  get(_target, prop) {
-    return (getDb() as unknown as Record<string | symbol, unknown>)[prop]
-  },
-})
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = db
+}

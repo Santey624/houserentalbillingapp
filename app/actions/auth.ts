@@ -1,15 +1,22 @@
 'use server'
 
 import bcrypt from 'bcryptjs'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { signIn } from '@/lib/auth'
 import { SignUpSchema, SignInSchema, ResetRequestSchema, ResetPasswordSchema } from '@/lib/validations'
 import { generateToken } from '@/lib/utils'
 import {
+  sendVerificationEmail,
   sendPasswordResetEmail,
 } from '@/lib/email'
-import type { Role } from '@prisma/client'
+import {
+  enforceRateLimit,
+  getClientAddress,
+  RateLimitExceededError,
+} from '@/lib/rate-limit'
+import { Prisma, type Role } from '@prisma/client'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
 
@@ -20,36 +27,65 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
   }
 
   const { name, email, password, role } = parsed.data
+  const requestHeaders = await headers()
+  try {
+    await enforceRateLimit(`${getClientAddress(requestHeaders)}:${email}`, {
+      scope: 'auth:signup',
+      limit: 5,
+      windowMs: 60 * 60 * 1000,
+    })
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) return { errors: { _: [error.message] } }
+    throw error
+  }
 
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) {
-    return { errors: { email: ['An account with this email already exists'] } }
+    redirect('/auth/signin?signup=pending')
   }
 
   const hashed = await bcrypt.hash(password, 12)
+  const token = generateToken()
+  let user
+  try {
+    user = await db.$transaction(async (tx) => {
+      const created = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashed,
+          role: role as Role,
+          emailVerified: null,
+          verificationTokens: {
+            create: {
+              token,
+              type: 'email_verify',
+              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            },
+          },
+        },
+      })
 
-  const user = await db.user.create({
-    data: {
-      name,
-      email,
-      password: hashed,
-      role: role as Role,
-      emailVerified: new Date(), // Auto-verify on signup
-    },
-  })
-
-  // Create role-specific profile
-  if (role === 'LANDLORD') {
-    await db.landlord.create({
-      data: { userId: user.id, displayName: name },
+      if (role === 'LANDLORD') {
+        await tx.landlord.create({ data: { userId: created.id, displayName: name } })
+      } else {
+        await tx.tenant.create({ data: { userId: created.id, displayName: name } })
+      }
+      return created
     })
-  } else {
-    await db.tenant.create({
-      data: { userId: user.id, displayName: name },
-    })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      redirect('/auth/signin?signup=pending')
+    }
+    throw error
   }
 
-  redirect('/auth/signin?signup=success')
+  const delivery = await sendVerificationEmail(user.email, token)
+  if (!delivery.success) {
+    console.error('Verification email delivery failed', { userId: user.id })
+  }
+
+  redirect('/auth/signin?signup=pending')
 }
 
 export async function signInAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -59,6 +95,17 @@ export async function signInAction(prevState: ActionState, formData: FormData): 
   }
 
   const { email, password } = parsed.data
+  const requestHeaders = await headers()
+  try {
+    await enforceRateLimit(`${getClientAddress(requestHeaders)}:${email}`, {
+      scope: 'auth:signin',
+      limit: 10,
+      windowMs: 15 * 60 * 1000,
+    })
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) return { errors: { _: [error.message] } }
+    throw error
+  }
 
   try {
     await signIn('credentials', { email, password, redirect: false })
@@ -83,11 +130,23 @@ export async function verifyEmailAction(token: string): Promise<{ success: boole
     return { success: false, message: 'Verification link has expired. Please sign up again.' }
   }
 
-  await db.user.update({
-    where: { id: record.userId },
-    data: { emailVerified: new Date() },
+  const verified = await db.$transaction(async (tx) => {
+    const consumed = await tx.verificationToken.deleteMany({
+      where: {
+        token,
+        userId: record.userId,
+        type: 'email_verify',
+        expiresAt: { gt: new Date() },
+      },
+    })
+    if (consumed.count !== 1) return false
+    await tx.user.update({
+      where: { id: record.userId },
+      data: { emailVerified: new Date() },
+    })
+    return true
   })
-  await db.verificationToken.delete({ where: { token } })
+  if (!verified) return { success: false, message: 'Invalid or expired verification link.' }
 
   return { success: true, message: 'Email verified! You can now sign in.' }
 }
@@ -99,6 +158,17 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
   }
 
   const { email } = parsed.data
+  const requestHeaders = await headers()
+  try {
+    await enforceRateLimit(`${getClientAddress(requestHeaders)}:${email}`, {
+      scope: 'auth:password-reset',
+      limit: 3,
+      windowMs: 60 * 60 * 1000,
+    })
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) return { message: 'If an account exists, a reset link has been sent.' }
+    throw error
+  }
   const user = await db.user.findUnique({ where: { email } })
 
   if (user) {
@@ -116,7 +186,7 @@ export async function requestPasswordResetAction(prevState: ActionState, formDat
 
     const result = await sendPasswordResetEmail(email, token)
     if (!result.success) {
-      console.error(`CRITICAL: Failed to send password reset email to ${email}. Error:`, result.error)
+      console.error('Password reset email delivery failed', { userId: user.id })
       // Cleanup token if email failed
       await db.verificationToken.deleteMany({
         where: { userId: user.id, type: 'password_reset' },
@@ -146,8 +216,26 @@ export async function resetPasswordAction(prevState: ActionState, formData: Form
   }
 
   const hashed = await bcrypt.hash(password, 12)
-  await db.user.update({ where: { id: record.userId }, data: { password: hashed } })
-  await db.verificationToken.delete({ where: { token } })
+  const reset = await db.$transaction(async (tx) => {
+    const consumed = await tx.verificationToken.deleteMany({
+      where: {
+        token,
+        userId: record.userId,
+        type: 'password_reset',
+        expiresAt: { gt: new Date() },
+      },
+    })
+    if (consumed.count !== 1) return false
+
+    await tx.user.update({
+      where: { id: record.userId },
+      data: { password: hashed, sessionVersion: { increment: 1 } },
+    })
+    await tx.verificationToken.deleteMany({ where: { userId: record.userId } })
+    await tx.session.deleteMany({ where: { userId: record.userId } })
+    return true
+  })
+  if (!reset) return { errors: { token: ['Invalid or expired reset link'] } }
 
   return { message: 'Password reset successfully. You can now sign in.' }
 }

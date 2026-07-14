@@ -11,9 +11,17 @@ export default async function LandlordMaintenancePage() {
 
   const requests = await db.maintenanceRequest.findMany({
     where: {
-      tenant: {
-        tenancies: { some: { unit: { building: { landlordId: landlord.id } }, status: 'ACTIVE' } },
-      },
+      OR: [
+        { tenancy: { unit: { building: { landlordId: landlord.id } } } },
+        {
+          tenancyId: null,
+          tenant: {
+            tenancies: {
+              some: { unit: { building: { landlordId: landlord.id } }, status: 'ACTIVE' },
+            },
+          },
+        },
+      ],
     },
     include: { tenant: true },
     orderBy: { createdAt: 'desc' },
@@ -59,7 +67,7 @@ export default async function LandlordMaintenancePage() {
                 <p className="text-sm text-muted-foreground mb-4 leading-relaxed">{req.description}</p>
                 {req.photoUrl && (
                   <a
-                    href={req.photoUrl}
+                    href={`/api/uploads/maintenance/${req.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-accent text-sm hover:underline underline-offset-2 mb-4"

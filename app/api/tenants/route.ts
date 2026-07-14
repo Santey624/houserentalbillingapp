@@ -1,60 +1,60 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getLandlord } from '@/lib/session'
+import { auth } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const { landlord } = await getLandlord()
-
-    if (!landlord) {
+    const session = await auth()
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (session.user.role !== 'LANDLORD') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
-    // Fetch tenants with active tenancies
-    const tenancies = await db.tenancy.findMany({
-      where: {
-        status: 'ACTIVE',
-        unit: { building: { landlordId: landlord.id } }
-      },
-      select: {
-        id: true,
-        unitId: true,
-        tenant: {
-          select: {
-            id: true,
-            displayName: true,
-          }
-        },
-        unit: {
-          select: {
-            unitNumber: true,
-            building: { select: { name: true } }
-          }
-        }
-      }
+    const landlord = await db.landlord.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
     })
+    if (!landlord) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    // Fetch tenants with pending join requests
-    const pendingRequests = await db.joinRequest.findMany({
-      where: {
-        status: 'PENDING',
-        building: { landlordId: landlord.id }
-      },
-      select: {
-        id: true,
-        unitId: true,
-        tenant: {
-          select: {
-            id: true,
-            displayName: true,
-          }
+    const [tenancies, pendingRequests] = await Promise.all([
+      db.tenancy.findMany({
+        where: {
+          status: 'ACTIVE',
+          unit: { building: { landlordId: landlord.id } },
         },
-        building: { select: { name: true } },
-        unit: { select: { unitNumber: true } }
-      }
-    })
+        select: {
+          id: true,
+          unitId: true,
+          tenant: { select: { id: true, displayName: true } },
+          unit: {
+            select: {
+              unitNumber: true,
+              building: { select: { name: true } },
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      db.joinRequest.findMany({
+        where: {
+          status: 'PENDING',
+          building: { landlordId: landlord.id },
+        },
+        select: {
+          id: true,
+          unitId: true,
+          tenant: { select: { id: true, displayName: true } },
+          building: { select: { name: true } },
+          unit: { select: { unitNumber: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+    ])
 
-    // Combine and format the results
     const tenantsFromTenancies = tenancies.map(t => ({
       id: t.tenant.id,
       displayName: t.tenant.displayName,
@@ -73,50 +73,13 @@ export async function GET() {
       type: 'PENDING_REQUEST'
     }))
 
-    // Fetch all other registered tenants
-    const allTenants = await db.tenant.findMany({
-      select: {
-        id: true,
-        displayName: true,
-        user: { select: { email: true } },
-        tenancies: {
-          where: { status: 'ACTIVE' },
-          select: {
-            id: true,
-            unitId: true,
-            unit: {
-              select: {
-                unitNumber: true,
-                building: { select: { name: true, landlordId: true } }
-              }
-            }
-          }
-        }
-      }
-    })
-
-    const tenantsFromAll = allTenants.map(t => {
-      const activeTenancy = t.tenancies.find(ten => ten.unit.building.landlordId === landlord.id)
-      return {
-        id: t.id,
-        displayName: t.displayName,
-        tenancyId: activeTenancy?.id,
-        unitId: activeTenancy?.unitId || null,
-        unitInfo: activeTenancy 
-          ? `${activeTenancy.unit.building.name} - Unit ${activeTenancy.unit.unitNumber}`
-          : t.user.email,
-        type: activeTenancy ? 'ACTIVE_TENANT' : 'OTHER_TENANT'
-      }
-    })
-
-    const combined = [...tenantsFromTenancies, ...tenantsFromRequests, ...tenantsFromAll]
+    const combined = [...tenantsFromTenancies, ...tenantsFromRequests]
 
     // Remove duplicates by tenant ID, keeping the most "specific" one (ACTIVE_TENANT > PENDING_REQUEST > OTHER_TENANT)
     const uniqueTenantsMap = new Map()
     for (const t of combined) {
       const existing = uniqueTenantsMap.get(t.id)
       if (!existing || 
-          (existing.type === 'OTHER_TENANT' && t.type !== 'OTHER_TENANT') ||
           (existing.type === 'PENDING_REQUEST' && t.type === 'ACTIVE_TENANT')) {
         uniqueTenantsMap.set(t.id, t)
       }

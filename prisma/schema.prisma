@@ -58,15 +58,16 @@ enum MaintenanceStatus {
 // ─── Auth.js Models ───────────────────────────────────────────────────────────
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          Role      @default(TENANT)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  role           Role      @default(TENANT)
+  sessionVersion Int       @default(0)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   accounts      Account[]
   sessions      Session[]
@@ -109,7 +110,7 @@ model VerificationToken {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique
-  type      String   // "email_verify" | "password_reset"
+  type      String // "email_verify" | "password_reset"
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -137,20 +138,21 @@ model Landlord {
 }
 
 model Building {
-  id           String   @id @default(cuid())
-  landlordId   String
-  name         String
-  address      String
-  contact      String   @default("")
-  isOpen       Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id         String   @id @default(cuid())
+  landlordId String
+  name       String
+  address    String
+  contact    String   @default("")
+  isOpen     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  landlord     Landlord       @relation(fields: [landlordId], references: [id], onDelete: Cascade)
+  landlord     Landlord      @relation(fields: [landlordId], references: [id], onDelete: Cascade)
   units        Unit[]
   joinRequests JoinRequest[]
 
   @@index([landlordId])
+  @@index([landlordId, isOpen, createdAt])
 }
 
 model Unit {
@@ -179,9 +181,9 @@ model Tenant {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tenancies    Tenancy[]
-  joinRequests JoinRequest[]
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenancies           Tenancy[]
+  joinRequests        JoinRequest[]
   maintenanceRequests MaintenanceRequest[]
 }
 
@@ -195,12 +197,15 @@ model Tenancy {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  tenant   Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  unit     Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  invoices Invoice[]
+  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  unit                Unit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  invoices            Invoice[]
+  maintenanceRequests MaintenanceRequest[]
 
   @@index([tenantId])
   @@index([unitId])
+  @@index([tenantId, status, createdAt])
+  @@index([unitId, status, createdAt])
 }
 
 model JoinRequest {
@@ -220,6 +225,8 @@ model JoinRequest {
   @@index([tenantId])
   @@index([buildingId])
   @@index([unitId])
+  @@index([buildingId, status, createdAt])
+  @@index([tenantId, status, createdAt])
 }
 
 model Invoice {
@@ -241,23 +248,24 @@ model Invoice {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
-  tenancy   Tenancy          @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
-  unit      Unit             @relation(fields: [unitId], references: [id])
+  tenancy   Tenancy           @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  unit      Unit              @relation(fields: [unitId], references: [id])
   lineItems InvoiceLineItem[]
   payments  Payment[]
 
   @@index([tenancyId])
   @@index([unitId])
+  @@index([tenancyId, status, createdAt])
 }
 
 model InvoiceLineItem {
-  id          String  @id @default(cuid())
+  id          String @id @default(cuid())
   invoiceId   String
   description String
   units       Float?
   rate        Float?
   amount      Float
-  sortOrder   Int     @default(0)
+  sortOrder   Int    @default(0)
 
   invoice      Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
   meterReading MeterReading?
@@ -266,13 +274,13 @@ model InvoiceLineItem {
 }
 
 model MeterReading {
-  id         String @id @default(cuid())
-  lineItemId String @unique
-  meterName  String
+  id          String @id @default(cuid())
+  lineItemId  String @unique
+  meterName   String
   prevReading Float
   currReading Float
-  consumed   Float
-  rate       Float
+  consumed    Float
+  rate        Float
 
   lineItem InvoiceLineItem @relation(fields: [lineItemId], references: [id], onDelete: Cascade)
 }
@@ -294,23 +302,28 @@ model Payment {
   invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
+  @@index([invoiceId, status, createdAt])
 }
 
 model MaintenanceRequest {
-  id          String            @id @default(cuid())
-  tenantId    String
-  title       String
-  description String            @db.Text
-  photoUrl    String?
-  status      MaintenanceStatus @default(OPEN)
+  id           String            @id @default(cuid())
+  tenantId     String
+  tenancyId    String?
+  title        String
+  description  String            @db.Text
+  photoUrl     String?
+  status       MaintenanceStatus @default(OPEN)
   landlordNote String?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  resolvedAt  DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  resolvedAt   DateTime?
 
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenancy Tenancy? @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
 
   @@index([tenantId])
+  @@index([tenancyId])
+  @@index([tenancyId, status, createdAt])
 }
 
 model Notification {
@@ -325,4 +338,14 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, isRead, createdAt])
+}
+
+model RateLimitBucket {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+  updatedAt   DateTime @updatedAt
+
+  @@index([updatedAt])
 }

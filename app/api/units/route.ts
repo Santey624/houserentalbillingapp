@@ -1,20 +1,30 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getLandlord } from '@/lib/session'
+import { auth } from '@/lib/auth'
 
 export async function GET() {
   try {
-    const { landlord } = await getLandlord()
-
-    if (!landlord) {
+    const session = await auth()
+    if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    if (session.user.role !== 'LANDLORD') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    const landlord = await db.landlord.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    })
+    if (!landlord) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     const units = await db.unit.findMany({
       where: {
         building: { landlordId: landlord.id },
       },
-      include: {
+      select: {
+        id: true,
+        buildingId: true,
+        unitNumber: true,
         building: {
           select: { name: true }
         },
@@ -26,7 +36,8 @@ export async function GET() {
       orderBy: [
         { building: { name: 'asc' } },
         { unitNumber: 'asc' }
-      ]
+      ],
+      take: 200,
     })
 
     return NextResponse.json(units)

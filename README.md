@@ -76,13 +76,14 @@ openssl rand -base64 32
 3. Copy "Connection string" → that is your `DIRECT_URL`
 4. Switch to "Pooled connection" → that is your `DATABASE_URL`
 
-### 3. Push the database schema
+### 3. Apply database migrations
 
 ```bash
-npx prisma db push
+npm run migrate:deploy
 ```
 
-This creates all tables in your Neon database. You should see confirmation for each model.
+For an existing database created before migrations were tracked, follow
+[`docs/database-migrations.md`](docs/database-migrations.md) before applying migrations.
 
 ### 4. Start the development server
 
@@ -239,7 +240,11 @@ aks-invoice/
 | `npm run dev` | Start development server |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
-| `npx prisma db push` | Push schema changes to database |
+| `npm run migrate:deploy` | Apply tracked database migrations |
+| `npm run prisma:validate` | Validate the Prisma schema |
+| `npm run typecheck` | Run strict TypeScript checks |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run automated tests |
 | `npx prisma generate` | Regenerate Prisma Client after schema changes |
 | `npx prisma studio` | Open Prisma Studio (GUI for your database) |
 
@@ -251,7 +256,7 @@ aks-invoice/
 2. Import the project in [vercel.com/new](https://vercel.com/new).
 3. Add all environment variables from `.env.example` in **Settings → Environment Variables**.
 4. Deploy. Vercel automatically runs `npm run build`.
-5. After the first deploy, run `npx prisma db push` once from your local machine (pointing at the production `DIRECT_URL`) to initialize the schema in production.
+5. Apply `npm run migrate:deploy` in a controlled release stage before promoting the application. Follow the backup and existing-database baseline procedure in `docs/database-migrations.md`.
 
 > **Note:** `AUTH_URL` should be set to your production domain, e.g. `https://your-app.vercel.app`.
 
@@ -263,7 +268,7 @@ aks-invoice/
 Make sure `.env.local` exists and has `DATABASE_URL` set. Never rename it to `.env` — Next.js gives `.env.local` higher priority and keeps it out of git.
 
 **`PrismaConfigEnvError: Cannot resolve environment variable: DIRECT_URL`**
-This only matters for `prisma db push` / `prisma migrate`. Set `DIRECT_URL` in your environment before running migrate commands.
+Set `DIRECT_URL` in your environment before running Prisma migration commands.
 
 **Email not arriving**
 Check your `RESEND_API_KEY` and confirm your `RESEND_FROM` address is a verified sender domain in Resend. In development, Resend's free tier only sends to the account owner's email.

@@ -172,10 +172,13 @@ export async function createInvoiceAction(formData: FormData) {
         include: { unit: { include: { building: true } }, tenant: { include: { user: true } } },
       })
 
-      await tx.joinRequest.update({
-        where: { id: request.id },
+      const transitioned = await tx.joinRequest.updateMany({
+        where: { id: request.id, status: 'PENDING', buildingId: request.buildingId },
         data: { status: 'APPROVED', unitId: fields.unitId },
       })
+      if (transitioned.count !== 1) {
+        throw new Error('Pending tenant request has already been processed')
+      }
 
       return existingTenancy ?? tx.tenancy.create({
         data: {
@@ -187,38 +190,7 @@ export async function createInvoiceAction(formData: FormData) {
       })
     })
   } else if (fields.tenantId) {
-    const [tenant, selectedUnit] = await Promise.all([
-      db.tenant.findUnique({
-        where: { id: fields.tenantId },
-        include: { user: true },
-      }),
-      db.unit.findFirst({
-        where: { id: fields.unitId, building: { landlordId: landlord.id } },
-        include: {
-          building: true,
-          tenancies: { where: { status: 'ACTIVE' } },
-        },
-      }),
-    ])
-
-    if (!tenant) {
-      throw new Error('Tenant not found')
-    }
-    if (!selectedUnit) {
-      throw new Error('Selected unit was not found')
-    }
-
-    tenancyForInvoice = await db.tenancy.findFirst({
-      where: { tenantId: tenant.id, unitId: fields.unitId, status: 'ACTIVE' },
-      include: { unit: { include: { building: true } }, tenant: { include: { user: true } } },
-    }) ?? await db.tenancy.create({
-      data: {
-        tenantId: tenant.id,
-        unitId: fields.unitId,
-        status: 'ACTIVE',
-      },
-      include: { unit: { include: { building: true } }, tenant: { include: { user: true } } },
-    })
+    throw new Error('Select a tenant through an authorized tenancy or join request.')
   } else if (fields.directBill) {
     const selectedUnit = await db.unit.findFirst({
       where: { id: fields.unitId, building: { landlordId: landlord.id } },

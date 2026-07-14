@@ -4,13 +4,11 @@ import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { LandlordProfileSchema, TenantProfileSchema } from '@/lib/validations'
-import { uploadBlob } from '@/lib/blob'
+import { deleteBlob, uploadPaymentQr } from '@/lib/blob'
+import { UploadValidationError } from '@/lib/upload-validation'
+import { enforceRateLimit, RateLimitExceededError } from '@/lib/rate-limit'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : 'Unknown error'
-}
 
 export async function updateLandlordSettingsAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireRole('LANDLORD')
@@ -33,13 +31,21 @@ export async function updateLandlordSettingsAction(prevState: ActionState, formD
   const qrFile = formData.get('qrImage') as File | null
   if (qrFile && qrFile.size > 0) {
     try {
-      qrImageUrl = await uploadBlob(qrFile, 'qr')
+      await enforceRateLimit(session.user.id, {
+        scope: 'upload:payment-qr',
+        limit: 5,
+        windowMs: 60 * 60 * 1000,
+      })
+      qrImageUrl = await uploadPaymentQr(qrFile)
     } catch (error) {
-      console.error('Failed to upload landlord QR image', { landlordId: landlord.id, error })
+      if (error instanceof UploadValidationError || error instanceof RateLimitExceededError) {
+        return { errors: { qrImage: [error.message] } }
+      }
+      console.error('Failed to upload landlord QR image', { landlordId: landlord.id })
       return {
         errors: {
           qrImage: ['Failed to upload QR image. Please try again with a valid image file.'],
-          _: [`Could not save settings: ${getErrorMessage(error)}`],
+          _: ['Could not save settings. Please try again.'],
         },
       }
     }
@@ -50,9 +56,13 @@ export async function updateLandlordSettingsAction(prevState: ActionState, formD
       where: { id: landlord.id },
       data: { ...parsed.data, qrImageUrl },
     })
-  } catch (error) {
-    console.error('Failed to update landlord settings', { landlordId: landlord.id, error })
-    return { errors: { _: [`Could not save settings: ${getErrorMessage(error)}`] } }
+  } catch {
+    if (qrImageUrl && qrImageUrl !== landlord.qrImageUrl) await deleteBlob(qrImageUrl)
+    console.error('Failed to update landlord settings', { landlordId: landlord.id })
+    return { errors: { _: ['Could not save settings. Please try again.'] } }
+  }
+  if (landlord.qrImageUrl && qrImageUrl !== landlord.qrImageUrl) {
+    await deleteBlob(landlord.qrImageUrl)
   }
 
   // Revalidate multiple paths to ensure updates reflect everywhere

@@ -1,9 +1,31 @@
-import { put, del } from '@vercel/blob'
+import 'server-only'
 
-export async function uploadBlob(file: File, folder: string): Promise<string> {
-  const filename = `${folder}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
-  const blob = await put(filename, file, { access: 'public' })
+import { randomUUID } from 'node:crypto'
+import { del, put } from '@vercel/blob'
+import { validateImageUpload, type UploadPurpose } from '@/lib/upload-validation'
+
+async function uploadImage(file: File, purpose: UploadPurpose, access: 'private' | 'public') {
+  const { bytes, contentType, extension } = await validateImageUpload(file, purpose)
+  const pathname = `${purpose}/${randomUUID()}.${extension}`
+  const blob = await put(pathname, Buffer.from(bytes), {
+    access,
+    contentType,
+    addRandomSuffix: false,
+    allowOverwrite: false,
+  })
   return blob.url
+}
+
+export function uploadPaymentProof(file: File) {
+  return uploadImage(file, 'payment-proofs', 'private')
+}
+
+export function uploadMaintenancePhoto(file: File) {
+  return uploadImage(file, 'maintenance', 'private')
+}
+
+export function uploadPaymentQr(file: File) {
+  return uploadImage(file, 'qr', 'public')
 }
 
 export async function deleteBlob(url: string): Promise<void> {

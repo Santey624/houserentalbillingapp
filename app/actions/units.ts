@@ -49,7 +49,19 @@ export async function updateUnitAction(prevState: ActionState, formData: FormDat
   const parsed = UnitSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
 
-  await db.unit.update({ where: { id }, data: parsed.data })
+  const targetBuilding = await db.building.findFirst({
+    where: { id: parsed.data.buildingId, landlordId },
+    select: { id: true },
+  })
+  if (!targetBuilding) {
+    return { errors: { buildingId: ['Building not found'] } }
+  }
+
+  const updated = await db.unit.updateMany({
+    where: { id, building: { landlordId } },
+    data: parsed.data,
+  })
+  if (updated.count !== 1) return { errors: { _: ['Unit not found'] } }
 
   revalidatePath(`/landlord/units/${id}`)
   revalidatePath(`/landlord/buildings/${unit.buildingId}`)
