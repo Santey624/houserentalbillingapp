@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Calistoga, JetBrains_Mono } from 'next/font/google'
 import { SessionProvider } from 'next-auth/react'
+import { SpeedInsights } from '@vercel/speed-insights/next'
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, openGraphMetadata } from '@/lib/site'
 import './globals.css'
 
 const inter = Inter({
@@ -24,8 +26,49 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'GharKhata — Smart Rent Management',
-  description: 'Smart rent management for Nepal landlords and tenants',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'GharKatha - Smart Rent Management in Nepal',
+    template: '%s | GharKatha',
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: [
+    'GharKatha',
+    'rent management Nepal',
+    'landlord software Nepal',
+    'tenant rent management',
+    'Nepali rent invoice',
+  ],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  openGraph: openGraphMetadata({
+    title: 'GharKatha - Smart Rent Management in Nepal',
+    description: SITE_DESCRIPTION,
+    path: '/',
+  }),
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GharKatha - Smart Rent Management in Nepal',
+    description: SITE_DESCRIPTION,
+    images: ['/opengraph-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
+    },
+  },
 }
 
 export default function RootLayout({
@@ -40,6 +83,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <SessionProvider>{children}</SessionProvider>
+        <SpeedInsights />
       </body>
     </html>
   )

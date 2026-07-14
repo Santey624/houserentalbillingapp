@@ -48,7 +48,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   const url = `${baseUrl()}/auth/verify?token=${token}`
   return await sendEmail({
     to: email,
-    subject: 'Verify your AKS Rental account',
+    subject: 'Verify your GharKatha account',
     html: `<p>Click the link below to verify your email address. This link expires in 24 hours.</p><a href="${url}">${url}</a>`,
   })
 }
@@ -57,7 +57,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${baseUrl()}/auth/reset/${token}`
   return await sendEmail({
     to: email,
-    subject: 'Reset your AKS Rental password',
+    subject: 'Reset your GharKatha password',
     html: `<p>Click the link below to reset your password. This link expires in 1 hour.</p><a href="${url}">${url}</a><p>If you did not request this, you can ignore this email.</p>`,
   })
 }

@@ -1,4 +1,4 @@
-# AKS Rental Platform
+# GharKatha
 
 A multi-tenant rental management platform for Nepal landlords and tenants. Landlords manage buildings, generate invoices in the Nepali calendar, and verify payments. Tenants view bills, download PDFs, submit payment proof, and file maintenance requests.
 

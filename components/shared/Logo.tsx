@@ -1,11 +1,14 @@
 import Image from 'next/image'
 
+/** Wordmark aspect ratio from brand asset (2172×724). */
+const LOGO_ASPECT = 2172 / 724
+
 export function Logo({ height = 32, className }: { height?: number; className?: string }) {
   return (
     <Image
-      src="/gharkhata-logo.png"
-      alt="GharKhata"
-      width={Math.round(height * 3.08)}
+      src="/gharkatha-logo.png"
+      alt="GharKatha"
+      width={Math.round(height * LOGO_ASPECT)}
       height={height}
       className={className}
       priority
@@ -14,12 +17,13 @@ export function Logo({ height = 32, className }: { height?: number; className?: 
 }
 
 export function LogoDark({ showTagline = false }: { showTagline?: boolean }) {
+  const height = showTagline ? 52 : 40
   return (
     <Image
-      src="/gharkhata-logo-light.png"
-      alt={showTagline ? 'GharKhata Smart Rent Management' : 'GharKhata'}
-      width={Math.round((showTagline ? 52 : 40) * 3.08)}
-      height={showTagline ? 52 : 40}
+      src="/gharkatha-logo-light.png"
+      alt={showTagline ? 'GharKatha Smart Rent Management' : 'GharKatha'}
+      width={Math.round(height * LOGO_ASPECT)}
+      height={height}
       priority
     />
   )

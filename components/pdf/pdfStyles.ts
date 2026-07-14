@@ -30,7 +30,7 @@ export const styles = StyleSheet.create({
     borderBottomColor: COLORS.BORDER,
   },
   brandBlock: { flex: 1 },
-  logo: { width: 150, height: 49, marginBottom: 6 },
+  logo: { width: 150, height: 50, marginBottom: 6 },
   brandFallback: {
     fontSize: 16,
     fontWeight: 700,

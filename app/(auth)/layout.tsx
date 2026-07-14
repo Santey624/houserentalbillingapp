@@ -1,6 +1,14 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { Building2, FileText, Wrench } from 'lucide-react'
 import { Logo, LogoDark } from '@/components/shared/Logo'
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

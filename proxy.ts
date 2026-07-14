@@ -8,8 +8,9 @@ export async function proxy(request: NextRequest) {
 
   const isLandlordRoute = pathname.startsWith('/landlord')
   const isTenantRoute = pathname.startsWith('/tenant')
+  const isNotificationsRoute = pathname.startsWith('/notifications')
 
-  if (!isLandlordRoute && !isTenantRoute) {
+  if (!isLandlordRoute && !isTenantRoute && !isNotificationsRoute) {
     return NextResponse.next()
   }
 
@@ -31,5 +32,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/landlord/:path*', '/tenant/:path*'],
+  matcher: ['/landlord/:path*', '/tenant/:path*', '/notifications/:path*'],
 }

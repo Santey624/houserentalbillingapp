@@ -1,8 +1,61 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { Building2, ArrowRight, CheckCircle2, Users, MapPin } from 'lucide-react'
 import { Logo, LogoDark } from '@/components/shared/Logo'
+import {
+  SITE_DESCRIPTION,
+  SITE_NAME,
+  SITE_URL,
+  absoluteUrl,
+  openGraphMetadata,
+} from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: {
+    absolute: 'GharKatha - Smart Rent Management in Nepal',
+  },
+  description: SITE_DESCRIPTION,
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: openGraphMetadata({
+    title: 'GharKatha - Smart Rent Management in Nepal',
+    description: SITE_DESCRIPTION,
+    path: '/',
+  }),
+}
+
+const homeJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: absoluteUrl('/gharkatha.png'),
+        width: 2172,
+        height: 724,
+      },
+      description: SITE_DESCRIPTION,
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      url: SITE_URL,
+      name: SITE_NAME,
+      description: SITE_DESCRIPTION,
+      publisher: {
+        '@id': `${SITE_URL}/#organization`,
+      },
+      inLanguage: 'en',
+    },
+  ],
+}
 
 export default async function LandingPage() {
   const session = await auth()
@@ -52,13 +105,20 @@ export default async function LandingPage() {
 
   return (
     <main className="min-h-screen flex flex-col bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
+      />
       {/* ── Nav ────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 flex items-center justify-between">
-          <Link href="/">
+          <Link href="/" aria-label="GharKatha home">
             <Logo height={56} />
           </Link>
           <div className="flex items-center gap-3">
+            <Link href="/about" className="btn-ghost hidden sm:inline-flex">
+              About
+            </Link>
             <Link href="/auth/signin" className="btn-ghost hidden sm:inline-flex">
               Sign In
             </Link>
@@ -82,10 +142,10 @@ export default async function LandingPage() {
             </div>
 
             <h1 className="text-[2.75rem] sm:text-5xl lg:text-[5.25rem] leading-[1.05] tracking-tight text-foreground mb-6 animate-fade-in-up-1">
-              Rental Management<br />
-              for Nepal, Made{' '}
+              GharKatha:<br />
+              Smart Rent Management{' '}
               <span className="relative inline-block">
-                <span className="gradient-text">Simple</span>
+                <span className="gradient-text">for Nepal</span>
                 <span
                   className="absolute left-0 w-full rounded-sm"
                   style={{
@@ -98,8 +158,8 @@ export default async function LandingPage() {
             </h1>
 
             <p className="text-muted-foreground text-lg leading-relaxed max-w-xl mb-10 animate-fade-in-up-2">
-              Manage buildings, generate invoices in Nepali calendar, track payments,
-              and handle maintenance — all in one clean platform.
+              GharKatha helps Nepal&apos;s landlords and tenants manage buildings, generate
+              Nepali-calendar invoices, track payments, and handle maintenance in one place.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-3">
@@ -174,7 +234,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── Feature cards ──────────────────────────────────────── */}
-      <section className="py-24 px-5 sm:px-8 bg-muted/40">
+      <section id="features" className="py-24 px-5 sm:px-8 bg-muted/40 scroll-mt-24">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <div className="section-label mb-5 inline-flex">
@@ -231,7 +291,7 @@ export default async function LandingPage() {
       </section>
 
       {/* ── How it works ───────────────────────────────────────── */}
-      <section className="py-24 px-5 sm:px-8">
+      <section id="how-it-works" className="py-24 px-5 sm:px-8 scroll-mt-24">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-14">
             <div className="section-label mb-5 inline-flex">
@@ -279,7 +339,7 @@ export default async function LandingPage() {
             <span className="gradient-text">started?</span>
           </h2>
           <p className="text-white/50 mb-10 text-lg">
-            Join landlords and tenants already using GharKhata.
+            Join landlords and tenants already using GharKatha.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="btn-primary h-14 px-10 text-base">
@@ -314,10 +374,12 @@ export default async function LandingPage() {
             <p className="text-white/55 font-semibold text-xs uppercase tracking-widest mb-5">Product</p>
             <ul className="space-y-3.5">
               {[
-                { label: 'For Landlords', href: '/auth/signup?role=LANDLORD' },
-                { label: 'For Tenants', href: '/auth/signup?role=TENANT' },
-                { label: 'Features', href: '#' },
-                { label: 'Pricing', href: '#' },
+                { label: 'For Landlords', href: '/for-landlords' },
+                { label: 'For Tenants', href: '/for-tenants' },
+                { label: 'Features', href: '/#features' },
+                { label: 'How It Works', href: '/#how-it-works' },
+                { label: 'About GharKatha', href: '/about' },
+                { label: 'Rent Management Nepal', href: '/rent-management-nepal' },
               ].map(({ label, href }) => (
                 <li key={label}>
                   <Link href={href} className="text-white/35 hover:text-white/65 text-sm transition-colors">
@@ -362,7 +424,7 @@ export default async function LandingPage() {
         {/* Bottom bar */}
         <div className="max-w-6xl mx-auto px-5 sm:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-white/25 text-xs">
-            &copy; {new Date().getFullYear()} GharKhata (घरखाता). All rights reserved.
+            &copy; {new Date().getFullYear()} GharKatha (घरकथा). All rights reserved.
           </p>
           <p className="text-white/20 text-xs tracking-wide">
             Designed &amp; built in Nepal 🇳🇵
