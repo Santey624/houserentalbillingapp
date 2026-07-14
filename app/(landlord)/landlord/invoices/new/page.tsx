@@ -3,7 +3,7 @@ import { getLandlord } from '@/lib/session'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import InvoiceForm from '@/components/landlord/InvoiceForm'
-import { ChevronLeft, UserPlus, Users } from 'lucide-react'
+import { ArrowRight, ChevronLeft, UserPlus, Users } from 'lucide-react'
 
 type VacantUnit = {
   id: string
@@ -12,9 +12,16 @@ type VacantUnit = {
 }
 
 export default async function NewInvoicePage(props: {
-  searchParams: Promise<{ tenancyId?: string; unitId?: string; joinRequestId?: string; tenantId?: string; manualTenantName?: string }>
+  searchParams: Promise<{
+    mode?: string
+    tenancyId?: string
+    unitId?: string
+    joinRequestId?: string
+    tenantId?: string
+    manualTenantName?: string
+  }>
 }) {
-  const { tenancyId, unitId, joinRequestId, tenantId, manualTenantName } = await props.searchParams
+  const { mode, tenancyId, unitId, joinRequestId, tenantId, manualTenantName } = await props.searchParams
   const { landlord } = await getLandlord()
 
   if (tenancyId) {
@@ -141,8 +148,50 @@ export default async function NewInvoicePage(props: {
     }
   }
 
+  if (mode !== 'direct' && mode !== 'existing') {
+    return (
+      <InvoicePageShell>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Link
+            href="/landlord/invoices/new?mode=existing"
+            className="card-modern card-modern-hover group flex min-h-48 flex-col p-6"
+          >
+            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-blue-50 text-accent">
+              <Users size={20} />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Bill Existing Tenant</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Create an invoice for an active tenancy, join request, or registered tenant.
+            </p>
+            <span className="mt-auto flex items-center gap-1.5 pt-5 text-sm font-medium text-accent">
+              Select tenant
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+
+          <Link
+            href="/landlord/invoices/new?mode=direct"
+            className="card-modern card-modern-hover group flex min-h-48 flex-col border-accent/25 bg-accent/[0.02] p-6"
+          >
+            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-blue-50 text-accent">
+              <UserPlus size={20} />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">Bill New Tenant</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Bill someone immediately without requiring them to create an account.
+            </p>
+            <span className="mt-auto flex items-center gap-1.5 pt-5 text-sm font-medium text-accent">
+              Start direct billing
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+        </div>
+      </InvoicePageShell>
+    )
+  }
+
   const [tenancies, pendingRequests, registeredTenants, allVacantUnits] = await Promise.all([
-    db.tenancy.findMany({
+    mode === 'existing' ? db.tenancy.findMany({
       where: { status: 'ACTIVE', unit: { building: { landlordId: landlord.id } } },
       select: {
         id: true,
@@ -152,8 +201,8 @@ export default async function NewInvoicePage(props: {
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
-    }),
-    db.joinRequest.findMany({
+    }) : Promise.resolve([]),
+    mode === 'existing' ? db.joinRequest.findMany({
       where: { status: 'PENDING', building: { landlordId: landlord.id } },
       select: {
         id: true,
@@ -164,8 +213,8 @@ export default async function NewInvoicePage(props: {
       },
       orderBy: { createdAt: 'desc' },
       take: 100,
-    }),
-    db.tenant.findMany({
+    }) : Promise.resolve([]),
+    mode === 'existing' ? db.tenant.findMany({
       where: {
         tenancies: {
           none: { status: 'ACTIVE', unit: { building: { landlordId: landlord.id } } },
@@ -174,7 +223,7 @@ export default async function NewInvoicePage(props: {
       select: { id: true, displayName: true, user: { select: { email: true } } },
       orderBy: { createdAt: 'desc' },
       take: 100,
-    }),
+    }) : Promise.resolve([]),
     db.unit.findMany({
       where: {
         building: { landlordId: landlord.id },
@@ -211,12 +260,19 @@ export default async function NewInvoicePage(props: {
 
   return (
     <InvoicePageShell>
+      <Link
+        href="/landlord/invoices/new"
+        className="mb-4 inline-flex items-center gap-1 text-xs font-medium text-accent hover:underline"
+      >
+        Change billing type
+      </Link>
       <div className="grid grid-cols-1 gap-6">
         {/* Direct bill */}
-        <div className="card-modern p-6 border-accent/20 bg-accent/[0.02]">
+        {mode === 'direct' && (
+          <div className="route-transition card-modern p-6 border-accent/20 bg-accent/[0.02]">
           <div className="flex items-center gap-2 mb-4 text-accent">
             <UserPlus size={18} />
-            <h3 className="font-bold text-foreground">Direct Billing (No account needed)</h3>
+            <h3 className="font-bold text-foreground">Bill New Tenant</h3>
           </div>
           {allVacantUnits.length === 0 ? (
             <p className="text-sm text-muted-foreground">Create a building and vacant unit first to use direct billing.</p>
@@ -248,10 +304,12 @@ export default async function NewInvoicePage(props: {
               </button>
             </form>
           )}
-        </div>
+          </div>
+        )}
 
         {/* Existing tenants */}
-        <div className="card-modern p-6">
+        {mode === 'existing' && (
+          <div className="route-transition card-modern p-6">
           <div className="flex items-center gap-2 mb-6">
             <Users size={18} className="text-muted-foreground" />
             <h3 className="font-semibold text-foreground">Bill Registered Tenant</h3>
@@ -359,7 +417,8 @@ export default async function NewInvoicePage(props: {
               )}
             </div>
           )}
-        </div>
+          </div>
+        )}
       </div>
     </InvoicePageShell>
   )

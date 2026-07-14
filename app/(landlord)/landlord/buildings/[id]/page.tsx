@@ -117,7 +117,7 @@ export default async function BuildingDetailPage(props: {
                     </Link>
                   ) : (
                     <Link
-                      href={`/landlord/invoices/new?unitId=${unit.id}`}
+                      href={`/landlord/invoices/new?mode=direct&unitId=${unit.id}`}
                       className="btn-secondary w-full py-1.5 text-xs h-8"
                     >
                       <Receipt size={12} />

@@ -14,6 +14,13 @@ import { InvoiceSchema } from '@/lib/validations'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
 
 const MAX_INVOICE_NUMBER_RETRIES = 5
+const MANUAL_TENANT_EMAIL_DOMAIN = '@gharkatha.local'
+const LEGACY_MANUAL_TENANT_EMAIL_DOMAIN = '@gharkhata.local'
+
+function isManualTenantEmail(email: string) {
+  return email.endsWith(MANUAL_TENANT_EMAIL_DOMAIN)
+    || email.endsWith(LEGACY_MANUAL_TENANT_EMAIL_DOMAIN)
+}
 
 function parseJsonRows<T>(value: FormDataEntryValue | null, fallback: T): T {
   if (typeof value !== 'string' || value.trim() === '') return fallback
@@ -223,7 +230,7 @@ export async function createInvoiceAction(formData: FormData) {
       throw new Error('Selected unit was not found')
     }
 
-    const manualEmail = `manual-${crypto.randomUUID()}@gharkhata.local`
+    const manualEmail = `manual-${crypto.randomUUID()}${MANUAL_TENANT_EMAIL_DOMAIN}`
 
     const manualTenant = await db.tenant.create({
       data: {
@@ -307,7 +314,7 @@ export async function createInvoiceAction(formData: FormData) {
       `Invoice ${invoiceNumber} for ${fields.nepaliMonth} ${fields.nepaliYear} has been issued.`,
       `/tenant/invoices/${invoice.id}`
     )
-    if (!tenantEmail.endsWith('@gharkhata.local')) {
+    if (!isManualTenantEmail(tenantEmail)) {
       await sendInvoiceNotification(tenantEmail, invoiceNumber, invoice.id)
     }
   })
@@ -463,7 +470,7 @@ export async function deleteInvoiceAction(invoiceId: string): Promise<void> {
     throw new Error('Invoice not found')
   }
 
-  const manualUserId = invoice.tenancy.tenant.user.email.endsWith('@gharkhata.local')
+  const manualUserId = isManualTenantEmail(invoice.tenancy.tenant.user.email)
     ? invoice.tenancy.tenant.userId
     : null
   const shouldDeleteManualTenant = manualUserId && invoice.tenancy._count.invoices === 1

@@ -363,6 +363,15 @@ h1, h2 {
   to { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes route-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.route-transition {
+  animation: route-enter 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .animate-float {
   animation: float 5s ease-in-out infinite;
   will-change: transform;
@@ -465,4 +474,20 @@ h1, h2 {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Respect operating-system motion preferences across the application. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }

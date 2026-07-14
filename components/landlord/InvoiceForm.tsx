@@ -78,6 +78,9 @@ export default function InvoiceForm({
   const [error, setError] = useState<string | null>(null)
 
   const today = new Date().toISOString().split('T')[0]
+  const hasPresetSelection = Boolean(
+    initialTenancyId || initialJoinRequestId || initialTenantId || initialDirectBill
+  )
 
   useEffect(() => {
     async function fetchData() {
@@ -98,10 +101,10 @@ export default function InvoiceForm({
         console.error('Failed to fetch data:', err)
       }
     }
-    if (!initialData) {
+    if (!initialData && !hasPresetSelection) {
       fetchData()
     }
-  }, [initialData])
+  }, [hasPresetSelection, initialData])
 
   function handleTenantChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const tId = e.target.value
@@ -204,7 +207,7 @@ export default function InvoiceForm({
       )}
 
       {/* Tenant & Unit Selection */}
-      {!initialData && (
+      {!initialData && !hasPresetSelection && (
         <div className="card-modern p-6 space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <User size={16} className="text-muted-foreground" />
@@ -271,6 +274,20 @@ export default function InvoiceForm({
           {!isManualEntry && selectedTenantId && !selectedUnitId && (
             <p className="text-xs text-red-500 mt-1">This tenant does not have a unit assigned yet.</p>
           )}
+        </div>
+      )}
+
+      {!initialData && hasPresetSelection && (
+        <div className="card-modern flex items-center gap-3 p-5">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-accent">
+            <User size={17} />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground">{selectedTenantName}</p>
+            <p className="text-xs text-muted-foreground">
+              {initialDirectBill ? 'New tenant · Direct billing' : 'Tenant and unit selected'}
+            </p>
+          </div>
         </div>
       )}
 
