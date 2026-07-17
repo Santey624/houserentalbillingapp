@@ -100,23 +100,21 @@ Open [http://localhost:3000](http://localhost:3000).
 ### As a Landlord
 
 1. Go to `/auth/signup`, choose **Landlord**, fill in your details.
-2. Check your email for the verification link and click it.
-3. Sign in at `/auth/signin`.
-4. You'll be redirected to the **Onboarding Wizard** (3 steps):
+2. Sign in at `/auth/signin` using the same email and password.
+3. You'll be redirected to the **Onboarding Wizard** (3 steps):
    - **Step 1 — Profile:** Enter your name, address, contact, electricity rate, payment due day.
    - **Step 2 — Building:** Create your first building (name, address).
    - **Step 3 — Unit:** Add your first unit (e.g., "Flat 2B").
-5. Land on the **Landlord Dashboard** at `/landlord`.
+4. Land on the **Landlord Dashboard** at `/landlord`.
 
 ### As a Tenant
 
 1. Go to `/auth/signup`, choose **Tenant**, fill in your details.
-2. Verify your email.
-3. Sign in and go to `/tenant/buildings`.
-4. Search for a building by name or landlord.
-5. Click **Request to Join**, optionally select a unit and add a note.
-6. Wait for landlord approval — you'll get an email and in-app notification.
-7. Once approved, your **Tenant Dashboard** at `/tenant` shows your unit and invoices.
+2. Sign in and go to `/tenant/buildings` using the same email and password.
+3. Search for a building by name or landlord.
+4. Click **Request to Join**, optionally select a unit and add a note.
+5. Wait for landlord approval — you'll get an email and in-app notification.
+6. Once approved, your **Tenant Dashboard** at `/tenant` shows your unit and invoices.
 
 ### Invoice flow
 
@@ -138,7 +136,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `/` | Landing page |
 | `/auth/signup` | Sign up (role selection: Landlord / Tenant) |
 | `/auth/signin` | Sign in |
-| `/auth/verify?token=...` | Email verification |
+| `/auth/verify?token=...` | Legacy email verification link handler |
 | `/auth/reset` | Request password reset |
 | `/auth/reset/[token]` | Set new password |
 

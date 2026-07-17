@@ -8,7 +8,6 @@ import { signIn } from '@/lib/auth'
 import { SignUpSchema, SignInSchema, ResetRequestSchema, ResetPasswordSchema } from '@/lib/validations'
 import { generateToken } from '@/lib/utils'
 import {
-  sendVerificationEmail,
   sendPasswordResetEmail,
 } from '@/lib/email'
 import {
@@ -41,28 +40,19 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
 
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) {
-    redirect('/auth/signin?signup=pending')
+    redirect('/auth/signin?signup=success')
   }
 
   const hashed = await bcrypt.hash(password, 12)
-  const token = generateToken()
-  let user
   try {
-    user = await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx) => {
       const created = await tx.user.create({
         data: {
           name,
           email,
           password: hashed,
           role: role as Role,
-          emailVerified: null,
-          verificationTokens: {
-            create: {
-              token,
-              type: 'email_verify',
-              expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-            },
-          },
+          emailVerified: new Date(),
         },
       })
 
@@ -75,17 +65,12 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      redirect('/auth/signin?signup=pending')
+      redirect('/auth/signin?signup=success')
     }
     throw error
   }
 
-  const delivery = await sendVerificationEmail(user.email, token)
-  if (!delivery.success) {
-    console.error('Verification email delivery failed', { userId: user.id })
-  }
-
-  redirect('/auth/signin?signup=pending')
+  redirect('/auth/signin?signup=success')
 }
 
 export async function signInAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
