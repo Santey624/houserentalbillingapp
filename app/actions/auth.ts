@@ -17,6 +17,7 @@ import {
   RateLimitExceededError,
 } from '@/lib/rate-limit'
 import { Prisma, type Role } from '@prisma/client'
+import { getSignInFailureMessage } from '@/lib/auth-feedback'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
 
@@ -41,7 +42,28 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
 
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) {
-    redirect('/auth/signin?signup=pending')
+    if (!existing.emailVerified) {
+      const token = generateToken()
+      await db.$transaction([
+        db.verificationToken.deleteMany({
+          where: { userId: existing.id, type: 'email_verify' },
+        }),
+        db.verificationToken.create({
+          data: {
+            userId: existing.id,
+            token,
+            type: 'email_verify',
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          },
+        }),
+      ])
+      const delivery = await sendVerificationEmail(existing.email, token)
+      if (!delivery.success) {
+        console.error('Verification email delivery failed', { userId: existing.id })
+      }
+      redirect('/auth/verify?sent=1')
+    }
+    redirect('/auth/signin')
   }
 
   const hashed = await bcrypt.hash(password, 12)
@@ -75,7 +97,7 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     })
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      redirect('/auth/signin?signup=pending')
+      redirect('/auth/signin')
     }
     throw error
   }
@@ -85,7 +107,7 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     console.error('Verification email delivery failed', { userId: user.id })
   }
 
-  redirect('/auth/signin?signup=pending')
+  redirect('/auth/verify?sent=1')
 }
 
 export async function signInAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
@@ -110,7 +132,16 @@ export async function signInAction(prevState: ActionState, formData: FormData): 
   try {
     await signIn('credentials', { email, password, redirect: false })
   } catch {
-    return { errors: { email: ['Invalid email or password'] } }
+    const candidate = await db.user.findUnique({
+      where: { email },
+      select: { emailVerified: true, password: true },
+    })
+    const passwordMatches = candidate?.password ? await bcrypt.compare(password, candidate.password) : false
+    return {
+      errors: {
+        _: [getSignInFailureMessage({ emailVerified: Boolean(candidate?.emailVerified), passwordMatches })],
+      },
+    }
   }
 
   const fullUser = await db.user.findUnique({ where: { email }, select: { role: true } })

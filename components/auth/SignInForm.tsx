@@ -15,6 +15,9 @@ export default function SignInForm({ callbackUrl }: Props) {
   return (
     <form action={action} className="space-y-4">
       {callbackUrl && <input type="hidden" name="callbackUrl" value={callbackUrl} />}
+      {state?.errors?._ && (
+        <div className="alert-error">{state.errors._[0]}</div>
+      )}
 
       <div>
         <label className="field-label">Email</label>
