@@ -5,6 +5,7 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
+  "media-src 'self'",
   "font-src 'self' data:",
   "connect-src 'self'",
   "object-src 'none'",

@@ -33,7 +33,7 @@ export default async function EditInvoicePage(props: {
 
   const skipDescriptions = ['House Rent', 'Service / Minimum Charge', 'Service Charge']
   const costs: CostRow[] = invoice.lineItems
-    .filter((li) => !li.meterReading && !skipDescriptions.some(d => li.description.includes(d)))
+    .filter((li) => !li.meterReading && !skipDescriptions.some(d => li.description.startsWith(d) || li.description.includes(d)))
     .map((li) => ({
       id: li.id,
       description: li.description,

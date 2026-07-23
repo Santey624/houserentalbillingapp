@@ -2,7 +2,12 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { createInvoiceAction, updateInvoiceAction } from '@/app/actions/invoices'
-import { NEPALI_MONTHS } from '@/lib/constants'
+import NepaliMonthPicker from '@/components/ui/NepaliMonthPicker'
+import {
+  countBillingMonths,
+  formatNepaliMonths,
+  parseNepaliMonths,
+} from '@/lib/nepaliMonths'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
 import { Plus, Trash2, Zap, FileText, User, Home } from 'lucide-react'
 
@@ -76,6 +81,27 @@ export default function InvoiceForm({
     initialData?.costs ?? [{ id: 'c1', description: 'Water', amount: '0' }]
   )
   const [error, setError] = useState<string | null>(null)
+
+  const initialMonths = (() => {
+    if (!initialData?.nepaliMonth) return [9]
+    const parsed = parseNepaliMonths(initialData.nepaliMonth)
+    return parsed.length > 0 ? parsed : [9]
+  })()
+  const [selectedMonths, setSelectedMonths] = useState<number[]>(initialMonths)
+  const [monthError, setMonthError] = useState<string | undefined>()
+
+  const initialMonthCount = countBillingMonths(
+    initialData?.nepaliMonth ? formatNepaliMonths(initialMonths) : formatNepaliMonths([9])
+  )
+  const [monthlyRent, setMonthlyRent] = useState<string>(() => {
+    if (initialData?.rentCost == null) return '0'
+    const monthly = initialData.rentCost / Math.max(1, initialMonthCount)
+    return Number.isInteger(monthly) ? String(monthly) : monthly.toFixed(2)
+  })
+
+  const monthCount = Math.max(1, selectedMonths.length)
+  const monthlyRentValue = parseFloat(monthlyRent) || 0
+  const totalRent = monthlyRentValue * monthCount
 
   const today = new Date().toISOString().split('T')[0]
   const hasPresetSelection = Boolean(
@@ -154,9 +180,25 @@ export default function InvoiceForm({
     setCosts((prev) => prev.map((c) => (c.id === id ? { ...c, [key]: value } : c)))
   }
 
+  function toggleMonth(index: number) {
+    setSelectedMonths((prev) => {
+      const next = prev.includes(index)
+        ? prev.filter((m) => m !== index)
+        : [...prev, index]
+      return next
+    })
+    setMonthError(undefined)
+  }
+
   function handleSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
+
+    if (selectedMonths.length === 0) {
+      setMonthError('Select at least one month')
+      return
+    }
+
     const form = e.currentTarget
     const fd = new FormData(form)
 
@@ -174,6 +216,8 @@ export default function InvoiceForm({
     
     fd.set('unitId', selectedUnitId)
     fd.set('tenantName', selectedTenantName)
+    fd.set('nepaliMonth', formatNepaliMonths(selectedMonths))
+    fd.set('rentCost', String(monthlyRentValue))
     fd.set('meters', JSON.stringify(meters))
     fd.set('costs', JSON.stringify(costs))
 
@@ -308,15 +352,22 @@ export default function InvoiceForm({
           </div>
         )}
 
+        <div>
+          <label className={labelCls}>Billing Month(s)</label>
+          <NepaliMonthPicker
+            selected={selectedMonths}
+            onToggle={toggleMonth}
+            error={monthError}
+          />
+          {selectedMonths.length > 0 && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Period: {formatNepaliMonths(selectedMonths)}
+              {monthCount > 1 ? ` · ${monthCount} months` : ''}
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className={labelCls}>Billing Month</label>
-            <select name="nepaliMonth" required defaultValue={initialData?.nepaliMonth} className="select-modern">
-              {NEPALI_MONTHS.map((m, i) => (
-                <option key={i} value={m.split(' (')[0]}>{m}</option>
-              ))}
-            </select>
-          </div>
           <div>
             <label className={labelCls}>Nepali Year</label>
             <input
@@ -327,9 +378,6 @@ export default function InvoiceForm({
               className={inputCls}
             />
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className={labelCls}>Invoice Date</label>
             <input
@@ -340,29 +388,37 @@ export default function InvoiceForm({
               className={inputCls}
             />
           </div>
-          <div>
-            <label className={labelCls}>Due Date (optional)</label>
-            <input
-              name="dueDate"
-              type="date"
-              defaultValue={initialData?.dueDate ?? ''}
-              className={inputCls}
-            />
-          </div>
+        </div>
+
+        <div>
+          <label className={labelCls}>Due Date (optional)</label>
+          <input
+            name="dueDate"
+            type="date"
+            defaultValue={initialData?.dueDate ?? ''}
+            className={inputCls}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelCls}>Rent (Rs.)</label>
+            <label className={labelCls}>Monthly Rent (Rs.)</label>
             <input
               name="rentCost"
               type="number"
               step="0.01"
               min="0"
               required
-              defaultValue={initialData?.rentCost ?? '0'}
+              value={monthlyRent}
+              onChange={(e) => setMonthlyRent(e.target.value)}
               className={inputCls}
             />
+            {monthCount > 1 && monthlyRentValue > 0 && (
+              <p className="text-xs text-muted-foreground mt-1.5">
+                Total rent: Rs. {totalRent.toLocaleString('en-NP', { maximumFractionDigits: 2 })}{' '}
+                ({monthCount} × Rs. {monthlyRentValue.toLocaleString('en-NP', { maximumFractionDigits: 2 })})
+              </p>
+            )}
           </div>
           <div>
             <label className={labelCls}>Service Charge (Rs.)</label>
