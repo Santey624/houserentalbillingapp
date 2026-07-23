@@ -53,10 +53,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!email || !password) return null
 
         const user = await db.user.findUnique({ where: { email } })
-        if (!user || !user.password || !user.emailVerified) return null
+        if (!user || !user.password || !user.emailVerified) {
+          // #region agent log
+          const reason = !user ? 'missing_user' : !user.password ? 'missing_password' : 'unverified_email'
+          fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'C',location:'lib/auth.ts:authorize:reject',message:'credentials authorize rejected',data:{reason},timestamp:Date.now()})}).catch(()=>{});
+          console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'C',location:'authorize:reject',reason}))
+          // #endregion
+          return null
+        }
 
         const valid = await bcrypt.compare(password, user.password)
-        if (!valid) return null
+        if (!valid) {
+          // #region agent log
+          fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'C',location:'lib/auth.ts:authorize:badPassword',message:'credentials authorize bad password',data:{},timestamp:Date.now()})}).catch(()=>{});
+          console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'C',location:'authorize:badPassword'}))
+          // #endregion
+          return null
+        }
 
         return {
           id: user.id,

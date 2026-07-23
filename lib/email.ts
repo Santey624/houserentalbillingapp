@@ -27,6 +27,14 @@ function escapeHtml(value: string) {
 async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   const resend = getResend()
   const fromEmail = from()
+  const apiKeyPresent = Boolean(process.env.RESEND_API_KEY)
+  const fromHost = fromEmail.split('@')[1] ?? null
+  const toHost = to.includes('@') ? to.split('@')[1] : null
+  const usingResendDev = fromHost === 'resend.dev'
+
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'A',location:'lib/email.ts:sendEmail:entry',message:'sendEmail called',data:{apiKeyPresent,fromHost,toHost,usingResendDev,subjectLen:subject.length},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 
   try {
     const { data, error } = await resend.emails.send({
@@ -38,13 +46,22 @@ async function sendEmail({ to, subject, html }: { to: string; subject: string; h
 
     if (error) {
       console.error('Email provider rejected message', { name: error.name })
+      // #region agent log
+      fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'B',location:'lib/email.ts:sendEmail:providerError',message:'resend rejected email',data:{name:error.name,message:error.message,fromHost,toHost,usingResendDev,apiKeyPresent},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       const errorDetails = [error.name, error.message].filter(Boolean).join(': ')
       return { success: false, error: new Error(`Resend email send failed: ${errorDetails}`) }
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'C',location:'lib/email.ts:sendEmail:success',message:'resend accepted email',data:{fromHost,toHost,usingResendDev,hasId:Boolean(data?.id)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     return { success: true, data }
   } catch (error) {
     console.error('Unexpected email provider failure')
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'B',location:'lib/email.ts:sendEmail:throw',message:'resend threw unexpectedly',data:{name:error instanceof Error?error.name:'unknown',message:error instanceof Error?error.message.slice(0,200):'unknown',fromHost,usingResendDev},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     return { success: false, error }
   }
 }

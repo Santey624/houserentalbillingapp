@@ -12,6 +12,12 @@ interface Props {
 export default function SignUpForm({ defaultRole }: Props) {
   const [state, action, pending] = useActionState(signUpAction, null)
 
+  // #region agent log
+  if (state?.errors) {
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'D',location:'components/auth/SignUpForm.tsx:state',message:'signup form received error state',data:{fields:Object.keys(state.errors),hasGeneral:Boolean(state.errors._)},timestamp:Date.now()})}).catch(()=>{})
+  }
+  // #endregion
+
   return (
     <form action={action} className="space-y-4">
       <div>
@@ -68,6 +74,10 @@ export default function SignUpForm({ defaultRole }: Props) {
           <option value="TENANT">Tenant</option>
         </select>
       </div>
+
+      {state?.errors?._ && (
+        <p className="field-error">{state.errors._[0]}</p>
+      )}
 
       <button
         type="submit"

@@ -21,8 +21,14 @@ import { Prisma, type Role } from '@prisma/client'
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
 
 export async function signUpAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'D',location:'app/actions/auth.ts:signUpAction:entry',message:'signup action started',data:{hasName:Boolean(formData.get('name')),hasEmail:Boolean(formData.get('email')),hasPassword:Boolean(formData.get('password')),role:String(formData.get('role')??'')},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   const parsed = SignUpSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'D',location:'app/actions/auth.ts:signUpAction:validation',message:'signup validation failed',data:{fields:Object.keys(parsed.error.flatten().fieldErrors)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
   }
 
@@ -35,12 +41,20 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
       windowMs: 60 * 60 * 1000,
     })
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'A',location:'app/actions/auth.ts:signUpAction:rateLimit',message:'signup rate limit error',data:{isRateLimit:error instanceof RateLimitExceededError,name:error instanceof Error?error.name:'unknown'},timestamp:Date.now()})}).catch(()=>{});
+    console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'A',location:'signUpAction:rateLimit',isRateLimit:error instanceof RateLimitExceededError,name:error instanceof Error?error.name:'unknown'}))
+    // #endregion
     if (error instanceof RateLimitExceededError) return { errors: { _: [error.message] } }
     throw error
   }
 
   const existing = await db.user.findUnique({ where: { email } })
   if (existing) {
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'E',location:'app/actions/auth.ts:signUpAction:existing',message:'signup found existing user',data:{unverified:existing.emailVerified==null},timestamp:Date.now()})}).catch(()=>{});
+    console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'E',location:'signUpAction:existing',unverified:existing.emailVerified==null}))
+    // #endregion
     redirect('/auth/signin?signup=pending')
   }
 
@@ -74,17 +88,36 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
       return created
     })
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'A',location:'app/actions/auth.ts:signUpAction:create',message:'signup create failed',data:{code:error instanceof Prisma.PrismaClientKnownRequestError?error.code:undefined,name:error instanceof Error?error.name:'unknown'},timestamp:Date.now()})}).catch(()=>{});
+    console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'A',location:'signUpAction:create',code:error instanceof Prisma.PrismaClientKnownRequestError?error.code:undefined,name:error instanceof Error?error.name:'unknown'}))
+    // #endregion
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       redirect('/auth/signin?signup=pending')
     }
     throw error
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'B',location:'app/actions/auth.ts:signUpAction:created',message:'signup user created',data:{role,emailVerified:user.emailVerified==null},timestamp:Date.now()})}).catch(()=>{});
+  console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'B',location:'signUpAction:created',role,emailVerifiedNull:user.emailVerified==null}))
+  // #endregion
+
   const delivery = await sendVerificationEmail(user.email, token)
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'B',location:'app/actions/auth.ts:signUpAction:email',message:'verification email attempted',data:{success:delivery.success,errorName:delivery.success?null:(delivery.error instanceof Error?delivery.error.name:'unknown'),errorMessage:delivery.success?null:(delivery.error instanceof Error?delivery.error.message.slice(0,180):'unknown')},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if (!delivery.success) {
     console.error('Verification email delivery failed', { userId: user.id })
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'E',location:'app/actions/auth.ts:signUpAction:emailFailedRedirect',message:'signup redirecting after email failure',data:{emailSent:false},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    redirect('/auth/signin?signup=email_failed')
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'C',location:'app/actions/auth.ts:signUpAction:redirect',message:'signup redirecting to pending signin',data:{emailSent:true},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   redirect('/auth/signin?signup=pending')
 }
 
@@ -107,16 +140,94 @@ export async function signInAction(prevState: ActionState, formData: FormData): 
     throw error
   }
 
+  const existingUser = await db.user.findUnique({
+    where: { email },
+    select: { id: true, password: true, emailVerified: true, role: true },
+  })
+  if (existingUser?.password && !existingUser.emailVerified) {
+    const passwordMatches = await bcrypt.compare(password, existingUser.password)
+    if (passwordMatches) {
+      // #region agent log
+      fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'C',location:'app/actions/auth.ts:signInAction:unverified',message:'signin blocked for unverified email',data:{},timestamp:Date.now()})}).catch(()=>{});
+      console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'C',location:'signInAction:unverified'}))
+      // #endregion
+      return {
+        errors: {
+          email: ['Please verify your email before signing in. Check your inbox or resend the verification email below.'],
+        },
+      }
+    }
+  }
+
   try {
     await signIn('credentials', { email, password, redirect: false })
   } catch {
     return { errors: { email: ['Invalid email or password'] } }
   }
 
-  const fullUser = await db.user.findUnique({ where: { email }, select: { role: true } })
+  const fullUser = existingUser ?? (await db.user.findUnique({ where: { email }, select: { role: true } }))
   if (!fullUser) return { errors: { email: ['Invalid email or password'] } }
 
   redirect(fullUser.role === 'LANDLORD' ? '/landlord' : '/tenant')
+}
+
+export async function resendVerificationEmailAction(
+  prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const parsed = ResetRequestSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    return { errors: parsed.error.flatten().fieldErrors as Record<string, string[]> }
+  }
+
+  const { email } = parsed.data
+  const requestHeaders = await headers()
+  try {
+    await enforceRateLimit(`${getClientAddress(requestHeaders)}:${email}`, {
+      scope: 'auth:resend-verification',
+      limit: 3,
+      windowMs: 60 * 60 * 1000,
+    })
+  } catch (error) {
+    if (error instanceof RateLimitExceededError) {
+      return { message: 'If an unverified account exists, a new verification link has been sent.' }
+    }
+    throw error
+  }
+
+  const user = await db.user.findUnique({
+    where: { email },
+    select: { id: true, emailVerified: true },
+  })
+
+  if (user && !user.emailVerified) {
+    await db.verificationToken.deleteMany({
+      where: { userId: user.id, type: 'email_verify' },
+    })
+    const token = generateToken()
+    await db.verificationToken.create({
+      data: {
+        userId: user.id,
+        token,
+        type: 'email_verify',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    })
+    const delivery = await sendVerificationEmail(email, token)
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9401e7'},body:JSON.stringify({sessionId:'9401e7',runId:'verify-email-debug',hypothesisId:'B',location:'app/actions/auth.ts:resendVerification',message:'resend verification attempted',data:{success:delivery.success,errorMessage:delivery.success?null:(delivery.error instanceof Error?delivery.error.message.slice(0,180):'unknown')},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    if (!delivery.success) {
+      console.error('Resend verification email delivery failed', { userId: user.id })
+      return {
+        errors: {
+          _: ['We could not send the verification email. Please try again later or contact support.'],
+        },
+      }
+    }
+  }
+
+  return { message: 'If an unverified account exists, a new verification link has been sent.' }
 }
 
 export async function verifyEmailAction(token: string): Promise<{ success: boolean; message: string }> {
