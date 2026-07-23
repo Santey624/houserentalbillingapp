@@ -85,7 +85,7 @@ export default async function TenantInvoiceDetailPage(props: {
       .reduce((s: number, li: (typeof invoice.lineItems)[number]) => s + (li.meterReading?.consumed ?? 0), 0),
     totalElec: invoice.totalElec,
     additionalCosts: invoice.lineItems
-      .filter((li: (typeof invoice.lineItems)[number]) => !li.meterReading && li.description !== 'House Rent' && li.description !== 'Service / Minimum Charge')
+      .filter((li: (typeof invoice.lineItems)[number]) => !li.meterReading && !li.description.startsWith('House Rent') && li.description !== 'Service / Minimum Charge')
       .map((li: (typeof invoice.lineItems)[number]) => ({ desc: li.description, amount: li.amount })),
     notes: invoice.notes ? invoice.notes.split('\n').map((n: string) => n.trim()).filter((n: string) => n.length > 0) : [],
     grandTotal: invoice.grandTotal,

@@ -1,5 +1,6 @@
 import { Document, Page, View, Text, Font, Image } from "@react-pdf/renderer";
 import { InvoiceData } from "@/lib/invoiceTypes";
+import { countBillingMonths } from "@/lib/nepaliMonths";
 import { styles } from "./pdfStyles";
 
 // Register fonts with absolute paths for better compatibility
@@ -67,11 +68,17 @@ function paymentDetailLines(details?: string | null) {
 function buildLineItems(data: InvoiceData): LineItem[] {
   const { landlord, invoice, meters, totalUnits, totalElec, additionalCosts } = data;
   const items: LineItem[] = [];
+  const monthCount = countBillingMonths(data.nepaliMonth);
+  const monthlyRent = monthCount > 0 ? invoice.rentCost / monthCount : invoice.rentCost;
 
   if (invoice.rentCost > 0) {
     items.push({
-      description: "Monthly Rent",
-      detail: `${data.nepaliMonth} ${invoice.nepaliYear}`,
+      description:
+        monthCount > 1 ? `House Rent (${monthCount} months)` : "Monthly Rent",
+      detail:
+        monthCount > 1
+          ? `${data.nepaliMonth} ${invoice.nepaliYear} · Rs. ${formatNum(monthlyRent)} × ${monthCount}`
+          : `${data.nepaliMonth} ${invoice.nepaliYear}`,
       amount: invoice.rentCost,
     });
   }
@@ -160,7 +167,12 @@ export default function InvoicePDF({ data }: Props) {
           <View style={styles.metaCard}>
             <Text style={styles.metaLabel}>Billing Period</Text>
             <Text style={styles.metaValue}>
-              {nepaliMonth} {invoice.nepaliYear}
+              {(() => {
+                const months = countBillingMonths(nepaliMonth);
+                return months > 1
+                  ? `${nepaliMonth} ${invoice.nepaliYear} (${months} months)`
+                  : `${nepaliMonth} ${invoice.nepaliYear}`;
+              })()}
             </Text>
           </View>
         </View>
