@@ -2,6 +2,7 @@
 
 import { after } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { db } from '@/lib/db'
 import { requireRole } from '@/lib/auth'
 import { JoinRequestSchema } from '@/lib/validations'
@@ -11,6 +12,10 @@ import { Prisma } from '@prisma/client'
 import { unitBelongsToBuilding } from '@/lib/authorization'
 
 type ActionState = { errors?: Record<string, string[]>; message?: string } | null
+
+function failApprove(message: string): never {
+  redirect(`/landlord/join-requests?error=${encodeURIComponent(message)}`)
+}
 
 export async function submitJoinRequestAction(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const session = await requireRole('TENANT')
@@ -77,10 +82,18 @@ export async function submitJoinRequestAction(prevState: ActionState, formData: 
   return { message: 'Join request submitted! Waiting for landlord approval.' }
 }
 
-export async function approveJoinRequestAction(requestId: string): Promise<void> {
+export async function approveJoinRequestAction(formData: FormData): Promise<void> {
+  const requestId = String(formData.get('requestId') ?? '')
+  const selectedUnitId = String(formData.get('unitId') ?? '').trim() || null
+  const newUnitNumber = String(formData.get('newUnitNumber') ?? '').trim() || null
+
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c130cd'},body:JSON.stringify({sessionId:'c130cd',runId:'assign-unit',hypothesisId:'A',location:'join-requests.ts:approve:entry',message:'approve with assign/create unit',data:{hasSelectedUnitId:Boolean(selectedUnitId),hasNewUnitNumber:Boolean(newUnitNumber)},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+
   const session = await requireRole('LANDLORD')
   const landlord = await db.landlord.findUnique({ where: { userId: session.user.id } })
-  if (!landlord) throw new Error('Landlord not found')
+  if (!landlord) failApprove('Landlord profile not found.')
 
   const request = await db.joinRequest.findFirst({
     where: { id: requestId },
@@ -90,51 +103,84 @@ export async function approveJoinRequestAction(requestId: string): Promise<void>
       tenant: { include: { user: true } },
     },
   })
-  if (!request || request.building.landlordId !== landlord.id) throw new Error('Request not found')
-
-  if (!request.unitId) {
-    throw new Error('Please select a unit before approving the request.')
-  }
-  if (request.status !== 'PENDING' || request.unit?.buildingId !== request.buildingId) {
-    throw new Error('This join request is no longer valid.')
+  if (!request || request.building.landlordId !== landlord.id) {
+    failApprove('Join request not found.')
   }
 
-  // Check if unit is already occupied
-  const existingTenancy = await db.tenancy.findFirst({
-    where: { unitId: request.unitId, status: 'ACTIVE' }
-  })
-  if (existingTenancy) {
-    throw new Error('This unit already has an active tenant. Please end the existing tenancy first.')
+  if (request.status !== 'PENDING') {
+    failApprove('This join request is no longer valid.')
   }
+
+  let unitId = request.unitId ?? selectedUnitId
 
   try {
     await db.$transaction(async (tx) => {
+      if (!unitId) {
+        if (!newUnitNumber) {
+          throw new Error('Select a unit or enter a new unit number before approving.')
+        }
+
+        const created = await tx.unit.create({
+          data: {
+            buildingId: request.buildingId,
+            unitNumber: newUnitNumber,
+          },
+          select: { id: true },
+        })
+        unitId = created.id
+      } else {
+        const unit = await tx.unit.findFirst({
+          where: { id: unitId, buildingId: request.buildingId },
+          select: { id: true, buildingId: true },
+        })
+        if (!unitBelongsToBuilding(unit, request.buildingId)) {
+          throw new Error('Selected unit does not belong to this building.')
+        }
+
+        const existingTenancy = await tx.tenancy.findFirst({
+          where: { unitId, status: 'ACTIVE' },
+        })
+        if (existingTenancy) {
+          throw new Error('This unit already has an active tenant. End the existing tenancy first.')
+        }
+      }
+
       const transitioned = await tx.joinRequest.updateMany({
         where: {
           id: requestId,
           status: 'PENDING',
           buildingId: request.buildingId,
-          unitId: request.unitId,
-          unit: { buildingId: request.buildingId },
         },
-        data: { status: 'APPROVED' },
+        data: { status: 'APPROVED', unitId },
       })
-      if (transitioned.count !== 1) throw new Error('This join request is no longer valid.')
+      if (transitioned.count !== 1) {
+        throw new Error('This join request is no longer valid.')
+      }
 
       await tx.tenancy.create({
         data: {
           tenantId: request.tenantId,
-          unitId: request.unitId!,
+          unitId,
           status: 'ACTIVE',
         },
       })
     })
   } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c130cd'},body:JSON.stringify({sessionId:'c130cd',runId:'assign-unit',hypothesisId:'D',location:'join-requests.ts:approve:catch',message:'approve failed',data:{errorMessage:error instanceof Error?error.message.slice(0,180):'unknown',prismaCode:error instanceof Prisma.PrismaClientKnownRequestError?error.code:null},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new Error('This unit already has an active tenant.')
+      failApprove('That unit number already exists or the unit is already occupied.')
     }
-    throw error
+    if (error instanceof Error) {
+      failApprove(error.message)
+    }
+    failApprove('Could not approve this join request. Please try again.')
   }
+
+  // #region agent log
+  fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'c130cd'},body:JSON.stringify({sessionId:'c130cd',runId:'assign-unit',hypothesisId:'E',location:'join-requests.ts:approve:success',message:'approve succeeded',data:{ok:true},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
 
   const tenantEmail = request.tenant.user.email
   const tenantUserId = request.tenant.user.id
@@ -153,6 +199,8 @@ export async function approveJoinRequestAction(requestId: string): Promise<void>
   revalidatePath('/landlord')
   revalidatePath('/landlord/join-requests')
   revalidatePath('/landlord/tenants')
+  revalidatePath(`/landlord/buildings/${request.buildingId}`)
+  redirect('/landlord/join-requests?approved=1')
 }
 
 export async function rejectJoinRequestAction(requestId: string): Promise<void> {

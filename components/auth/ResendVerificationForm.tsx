@@ -3,7 +3,7 @@
 import { useActionState } from 'react'
 import { resendVerificationEmailAction } from '@/app/actions/auth'
 
-export default function ResendVerificationForm() {
+export default function ResendVerificationForm({ defaultEmail = '' }: { defaultEmail?: string }) {
   const [state, action, pending] = useActionState(resendVerificationEmailAction, null)
 
   return (
@@ -14,6 +14,7 @@ export default function ResendVerificationForm() {
           name="email"
           type="email"
           required
+          defaultValue={defaultEmail}
           autoComplete="email"
           placeholder="you@example.com"
           className="input-modern"

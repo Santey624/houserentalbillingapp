@@ -55,6 +55,32 @@ export async function signUpAction(prevState: ActionState, formData: FormData): 
     fetch('http://127.0.0.1:7593/ingest/befd32db-d4a6-43bd-be73-44f8795636bc',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'9b9e33'},body:JSON.stringify({sessionId:'9b9e33',runId:'signup-debug',hypothesisId:'E',location:'app/actions/auth.ts:signUpAction:existing',message:'signup found existing user',data:{unverified:existing.emailVerified==null},timestamp:Date.now()})}).catch(()=>{});
     console.error('[debug-9b9e33]', JSON.stringify({hypothesisId:'E',location:'signUpAction:existing',unverified:existing.emailVerified==null}))
     // #endregion
+
+    // Already verified — send them to sign in without leaking account existence details.
+    if (existing.emailVerified) {
+      redirect('/auth/signin?signup=pending')
+    }
+
+    // Unverified account: issue a fresh token and try again (helps after email outages).
+    const token = generateToken()
+    await db.$transaction(async (tx) => {
+      await tx.verificationToken.deleteMany({
+        where: { userId: existing.id, type: 'email_verify' },
+      })
+      await tx.verificationToken.create({
+        data: {
+          userId: existing.id,
+          token,
+          type: 'email_verify',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      })
+    })
+    const delivery = await sendVerificationEmail(existing.email, token)
+    if (!delivery.success) {
+      console.error('Verification email delivery failed', { userId: existing.id })
+      redirect('/auth/signin?signup=email_failed')
+    }
     redirect('/auth/signin?signup=pending')
   }
 
@@ -201,17 +227,19 @@ export async function resendVerificationEmailAction(
   })
 
   if (user && !user.emailVerified) {
-    await db.verificationToken.deleteMany({
-      where: { userId: user.id, type: 'email_verify' },
-    })
     const token = generateToken()
-    await db.verificationToken.create({
-      data: {
-        userId: user.id,
-        token,
-        type: 'email_verify',
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
+    await db.$transaction(async (tx) => {
+      await tx.verificationToken.deleteMany({
+        where: { userId: user.id, type: 'email_verify' },
+      })
+      await tx.verificationToken.create({
+        data: {
+          userId: user.id,
+          token,
+          type: 'email_verify',
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      })
     })
     const delivery = await sendVerificationEmail(email, token)
     // #region agent log

@@ -64,7 +64,7 @@ export default async function BuildingDetailPage(props: {
         <h2 className="text-lg font-semibold text-foreground">
           Units <span className="text-sm font-normal text-muted-foreground ml-1">({building.units.length})</span>
         </h2>
-        <Link href={`/landlord/buildings/new?buildingId=${id}`} className="btn-secondary py-1.5 px-3 text-xs">
+        <Link href={`/landlord/buildings/${id}/units/new`} className="btn-secondary py-1.5 px-3 text-xs">
           <Plus size={12} />
           Add Unit
         </Link>
