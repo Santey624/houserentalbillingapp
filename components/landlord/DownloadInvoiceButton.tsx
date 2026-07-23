@@ -64,7 +64,7 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
       .filter(
         (li) =>
           !li.meterReading &&
-          !skipDescriptions.some((s) => li.description.toLowerCase().includes(s.toLowerCase()))
+          !skipDescriptions.some((s) => li.description.startsWith(s) || li.description.toLowerCase().includes(s.toLowerCase()))
       )
       .map((li) => ({ desc: li.description, amount: li.amount }));
 

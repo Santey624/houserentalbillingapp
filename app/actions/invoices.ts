@@ -12,10 +12,22 @@ import { createNotification } from './notifications'
 import { sendInvoiceNotification } from '@/lib/email'
 import { InvoiceSchema } from '@/lib/validations'
 import type { MeterRow, CostRow } from '@/lib/invoiceTypes'
+import { countBillingMonths, rentLineDescription } from '@/lib/nepaliMonths'
 
 const MAX_INVOICE_NUMBER_RETRIES = 5
 const MANUAL_TENANT_EMAIL_DOMAIN = '@gharkatha.local'
 const LEGACY_MANUAL_TENANT_EMAIL_DOMAIN = '@gharkhata.local'
+
+function resolveRent(nepaliMonth: string, monthlyRent: number) {
+  const monthCount = countBillingMonths(nepaliMonth)
+  const totalRent = monthlyRent * monthCount
+  return {
+    monthCount,
+    monthlyRent,
+    totalRent,
+    rentDescription: rentLineDescription(nepaliMonth, monthlyRent, monthCount),
+  }
+}
 
 function isManualTenantEmail(email: string) {
   return email.endsWith(MANUAL_TENANT_EMAIL_DOMAIN)
@@ -128,11 +140,12 @@ export async function createInvoiceAction(formData: FormData) {
     }
   }
 
-  // Compute totals
+  // Compute totals — rentCost from the form is monthly; multiply by selected months
+  const rent = resolveRent(fields.nepaliMonth, fields.rentCost)
   const { details: meterDetails, totalElec } = computeMeters(meterRows, electricityRate)
   const additionalCosts = filterCosts(costRows)
   const extraTotal = additionalCosts.reduce((s, c) => s + c.amount, 0)
-  const grandTotal = fields.rentCost + totalElec + fields.serviceCharge + extraTotal
+  const grandTotal = rent.totalRent + totalElec + fields.serviceCharge + extraTotal
 
   let tenancyForInvoice: NonNullable<typeof activeTenancy>
   if (fields.tenancyId) {
@@ -239,14 +252,14 @@ export async function createInvoiceAction(formData: FormData) {
     nepaliYear: fields.nepaliYear,
     invoiceDate: fields.invoiceDate,
     dueDate: fields.dueDate || null,
-    rentCost: fields.rentCost,
+    rentCost: rent.totalRent,
     serviceCharge: fields.serviceCharge,
     totalElec,
     grandTotal,
     notes,
     lineItems: {
       create: [
-        { description: 'House Rent', amount: fields.rentCost, sortOrder: sortOrder++ },
+        { description: rent.rentDescription, amount: rent.totalRent, sortOrder: sortOrder++ },
         ...(fields.serviceCharge > 0
           ? [{ description: 'Service / Minimum Charge', amount: fields.serviceCharge, sortOrder: sortOrder++ }]
           : []),
@@ -340,10 +353,11 @@ export async function updateInvoiceAction(formData: FormData) {
   const costRows = parseJsonRows<CostRow[]>(formData.get('costs'), [])
   assertValidMeters(meterRows)
 
+  const rent = resolveRent(fields.nepaliMonth, fields.rentCost)
   const { details: meterDetails, totalElec } = computeMeters(meterRows, electricityRate)
   const additionalCosts = filterCosts(costRows)
   const extraTotal = additionalCosts.reduce((s, c) => s + c.amount, 0)
-  const grandTotal = fields.rentCost + totalElec + fields.serviceCharge + extraTotal
+  const grandTotal = rent.totalRent + totalElec + fields.serviceCharge + extraTotal
 
   await db.$transaction(async (tx) => {
     // Delete existing line items (Cascade will take care of MeterReadings)
@@ -357,14 +371,14 @@ export async function updateInvoiceAction(formData: FormData) {
         nepaliYear: fields.nepaliYear,
         invoiceDate: fields.invoiceDate,
         dueDate: fields.dueDate || null,
-        rentCost: fields.rentCost,
+        rentCost: rent.totalRent,
         serviceCharge: fields.serviceCharge,
         totalElec,
         grandTotal,
         notes,
         lineItems: {
           create: [
-            { description: 'House Rent', amount: fields.rentCost, sortOrder: sortOrder++ },
+            { description: rent.rentDescription, amount: rent.totalRent, sortOrder: sortOrder++ },
             ...(fields.serviceCharge > 0
               ? [{ description: 'Service / Minimum Charge', amount: fields.serviceCharge, sortOrder: sortOrder++ }]
               : []),

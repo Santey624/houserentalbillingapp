@@ -135,6 +135,8 @@ export function useInvoiceForm() {
     const nepaliMonth = sorted
       .map((i) => NEPALI_MONTHS[i].split(" (")[0])
       .join(" & ");
+    const monthCount = Math.max(1, sorted.length);
+    const totalRent = invoice.rentCost * monthCount;
 
     const { details, totalUnits, totalElec } = computeMeters(
       meters,
@@ -142,7 +144,7 @@ export function useInvoiceForm() {
     );
     const additionalCosts = filterCosts(costs);
     const grandTotal = computeGrandTotal(
-      invoice.rentCost,
+      totalRent,
       totalElec,
       invoice.serviceCharge,
       additionalCosts
@@ -150,7 +152,7 @@ export function useInvoiceForm() {
 
     return {
       landlord,
-      invoice,
+      invoice: { ...invoice, rentCost: totalRent },
       invoiceNum: generateInvoiceNumber(),
       nepaliMonth,
       meters: details,
