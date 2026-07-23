@@ -1,27 +1,29 @@
 import { Document, Page, View, Text, Font, Image } from "@react-pdf/renderer";
 import { InvoiceData } from "@/lib/invoiceTypes";
 import { countBillingMonths } from "@/lib/nepaliMonths";
+import { pdfAssetUrl } from "@/lib/downloadBlob";
 import { styles } from "./pdfStyles";
 
-// Register fonts with absolute paths for better compatibility
-Font.register({
-  family: "Playfair Display",
-  fonts: [
-    { src: "/fonts/playfair-display-latin-400-normal.woff" },
-    { src: "/fonts/playfair-display-latin-700-normal.woff", fontWeight: 700 },
-    { src: "/fonts/playfair-display-latin-400-italic.woff", fontStyle: "italic" },
-  ],
-});
+function registerPdfFonts() {
+  const playfair = [
+    { src: pdfAssetUrl("/fonts/playfair-display-latin-400-normal.woff") },
+    { src: pdfAssetUrl("/fonts/playfair-display-latin-700-normal.woff"), fontWeight: 700 as const },
+    { src: pdfAssetUrl("/fonts/playfair-display-latin-400-italic.woff"), fontStyle: "italic" as const },
+  ];
+  const dmSans = [
+    { src: pdfAssetUrl("/fonts/dm-sans-latin-400-normal.woff") },
+    { src: pdfAssetUrl("/fonts/dm-sans-latin-700-normal.woff"), fontWeight: 700 as const },
+    { src: pdfAssetUrl("/fonts/dm-sans-latin-400-normal.woff"), fontStyle: "italic" as const },
+  ];
 
-Font.register({
-  family: "DM Sans",
-  fonts: [
-    { src: "/fonts/dm-sans-latin-400-normal.woff" },
-    { src: "/fonts/dm-sans-latin-700-normal.woff", fontWeight: 700 },
-    // Using normal as fallback for italic if specific woff not present
-    { src: "/fonts/dm-sans-latin-400-normal.woff", fontStyle: "italic" },
-  ],
-});
+  Font.register({ family: "Playfair Display", fonts: playfair });
+  Font.register({ family: "DM Sans", fonts: dmSans });
+}
+
+// Register once in the browser; pdf() only runs client-side.
+if (typeof window !== "undefined") {
+  registerPdfFonts();
+}
 
 Font.registerHyphenationCallback((word) => [word]);
 
@@ -131,7 +133,11 @@ export default function InvoicePDF({ data }: Props) {
   const bankLines = paymentDetailLines(landlord.bankDetails);
 
   // Use a simpler check for the QR image
-  const qrImage = landlord.qrImageUrl && landlord.qrImageUrl.length > 10 ? landlord.qrImageUrl : null;
+  const qrImage =
+    landlord.qrImageUrl && landlord.qrImageUrl.length > 10
+      ? pdfAssetUrl(landlord.qrImageUrl)
+      : null;
+  const logoSrc = pdfAssetUrl("/gharkatha-logo.png");
   const hasPaymentMethods = bankLines.length > 0 || Boolean(qrImage);
 
 
@@ -141,7 +147,7 @@ export default function InvoicePDF({ data }: Props) {
         <View style={styles.header}>
           <View style={styles.brandBlock}>
             <View style={{ width: 120 }}>
-              <Image src="/gharkatha-logo.png" style={styles.logo} />
+              <Image src={logoSrc} style={styles.logo} />
             </View>
             <Text style={styles.brandTagline}>Rental billing and property management</Text>
           </View>
