@@ -105,7 +105,7 @@ export default async function JoinRequestsPage(props: {
                     {!req.unit && (
                       <>
                         {' '}
-                        &middot; <span className="font-medium text-amber-700">No unit selected</span>
+                        &middot; <span className="font-medium text-amber-300">No unit selected</span>
                       </>
                     )}
                   </p>

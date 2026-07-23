@@ -15,8 +15,8 @@ export default function ResetPasswordForm({ token }: Props) {
   if (state?.message) {
     return (
       <div className="text-center space-y-5">
-        <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mx-auto">
-          <CheckCircle2 size={24} className="text-emerald-600" />
+        <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto">
+          <CheckCircle2 size={24} className="text-emerald-300" />
         </div>
         <p className="text-muted-foreground text-sm">{state.message}</p>
         <Link href="/auth/signin" className="btn-primary inline-flex">

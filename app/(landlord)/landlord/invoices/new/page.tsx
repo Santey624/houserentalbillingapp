@@ -156,7 +156,7 @@ export default async function NewInvoicePage(props: {
             href="/landlord/invoices/new?mode=existing"
             className="card-modern card-modern-hover group flex min-h-48 flex-col p-6"
           >
-            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-blue-50 text-accent">
+            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <Users size={20} />
             </div>
             <h2 className="text-lg font-semibold text-foreground">Bill Existing Tenant</h2>
@@ -173,7 +173,7 @@ export default async function NewInvoicePage(props: {
             href="/landlord/invoices/new?mode=direct"
             className="card-modern card-modern-hover group flex min-h-48 flex-col border-accent/25 bg-accent/[0.02] p-6"
           >
-            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-blue-50 text-accent">
+            <div className="mb-5 flex size-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
               <UserPlus size={20} />
             </div>
             <h2 className="text-lg font-semibold text-foreground">Bill New Tenant</h2>
@@ -281,12 +281,12 @@ export default async function NewInvoicePage(props: {
                   required
                   minLength={2}
                   placeholder="Who are you billing?"
-                  className="input-modern bg-white"
+                  className="input-modern bg-card"
                 />
               </div>
               <div>
                 <label className="field-label">Select Unit</label>
-                <select name="unitId" required className="select-modern bg-white">
+                <select name="unitId" required className="select-modern bg-card">
                   {allVacantUnits.map((unit) => (
                     <option key={unit.id} value={unit.id}>
                       {unit.building.name} · Unit {unit.unitNumber}
@@ -339,7 +339,7 @@ export default async function NewInvoicePage(props: {
                     {pendingRequests.map((req) => {
                       const requestVacantUnits = vacantUnitsByBuilding[req.building.id] ?? []
                       return (
-                        <div key={req.id} className="p-4 rounded-xl border border-blue-100 bg-blue-50/30">
+                        <div key={req.id} className="p-4 rounded-xl border border-accent/20 bg-accent/10">
                           <div className="flex items-center justify-between gap-3 mb-3">
                             <div>
                               <p className="font-semibold text-sm text-foreground">{req.tenant.displayName}</p>
@@ -365,7 +365,7 @@ export default async function NewInvoicePage(props: {
                                   <Link
                                     key={u.id}
                                     href={`/landlord/invoices/new?joinRequestId=${req.id}&unitId=${u.id}`}
-                                    className="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
+                                    className="rounded-lg border border-border bg-card px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
                                   >
                                     Assign Unit {u.unitNumber}
                                   </Link>
@@ -398,7 +398,7 @@ export default async function NewInvoicePage(props: {
                               <Link
                                 key={unit.id}
                                 href={`/landlord/invoices/new?tenantId=${tenant.id}&unitId=${unit.id}`}
-                                className="rounded-lg border border-border bg-white px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
+                                className="rounded-lg border border-border bg-card px-2.5 py-1 text-[10px] font-medium text-foreground hover:border-accent/40 transition-colors"
                               >
                                 {unit.building.name} · Unit {unit.unitNumber}
                               </Link>

@@ -34,9 +34,9 @@ export default function LandingNav() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ease-out ${
         solid
-          ? 'border-b border-border bg-white/90 backdrop-blur-md'
+          ? 'border-b border-zinc-200/80 bg-[#f8f9fa]/90 backdrop-blur-xl'
           : 'border-b border-transparent bg-transparent'
       }`}
     >
@@ -50,10 +50,10 @@ export default function LandingNav() {
             <Link
               key={link.href}
               href={link.href}
-              className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors ${
+              className={`rounded-lg px-3.5 py-2 text-sm font-medium transition-colors duration-300 ${
                 solid
-                  ? 'text-slate-600 hover:text-slate-900'
-                  : 'text-white/80 hover:text-white'
+                  ? 'text-zinc-600 hover:text-zinc-900'
+                  : 'text-white/75 hover:text-white'
               }`}
             >
               {link.label}
@@ -64,20 +64,28 @@ export default function LandingNav() {
         <div className="hidden items-center gap-2 sm:flex">
           <Link
             href="/auth/signin"
-            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-              solid ? 'text-slate-600 hover:text-slate-900' : 'text-white/85 hover:text-white'
+            className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-300 ${
+              solid ? 'text-zinc-600 hover:text-zinc-900' : 'text-white/80 hover:text-white'
             }`}
           >
             Log in
           </Link>
-          <Link href="/auth/signup" className="btn-primary h-10 rounded-full px-5 text-sm">
-            Start Free <ArrowRight size={14} />
-          </Link>
+          {solid ? (
+            <Link href="/auth/signup" className="landing-btn-solid h-10 px-5 text-sm">
+              Start Free <ArrowRight size={14} />
+            </Link>
+          ) : (
+            <Link href="/auth/signup" className="landing-btn-primary h-10 px-5 text-sm">
+              Start Free <ArrowRight size={14} />
+            </Link>
+          )}
         </div>
 
         <button
           type="button"
-          className={`rounded-lg p-2 lg:hidden ${solid ? 'text-foreground' : 'text-white'}`}
+          className={`rounded-lg p-2 transition-colors duration-300 lg:hidden ${
+            solid ? 'text-zinc-900' : 'text-white'
+          }`}
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? 'Close menu' : 'Open menu'}
@@ -88,13 +96,13 @@ export default function LandingNav() {
       </div>
 
       {open && (
-        <div id="mobile-nav" className="border-t border-border bg-white px-5 py-6 lg:hidden">
+        <div id="mobile-nav" className="border-t border-zinc-200 bg-[#f8f9fa] px-5 py-6 lg:hidden">
           <nav className="flex flex-col gap-1" aria-label="Mobile">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-lg px-3 py-3 text-base font-medium text-foreground hover:bg-muted"
+                className="rounded-lg px-3 py-3 text-base font-medium text-zinc-900 hover:bg-zinc-100"
                 onClick={() => setOpen(false)}
               >
                 {link.label}
@@ -102,10 +110,18 @@ export default function LandingNav() {
             ))}
           </nav>
           <div className="mt-6 flex flex-col gap-3">
-            <Link href="/auth/signin" className="btn-secondary h-11 w-full" onClick={() => setOpen(false)}>
+            <Link
+              href="/auth/signin"
+              className="inline-flex h-11 w-full items-center justify-center rounded-full border border-zinc-200 text-sm font-medium text-zinc-800"
+              onClick={() => setOpen(false)}
+            >
               Log in
             </Link>
-            <Link href="/auth/signup" className="btn-primary h-11 w-full" onClick={() => setOpen(false)}>
+            <Link
+              href="/auth/signup"
+              className="landing-btn-solid h-11 w-full"
+              onClick={() => setOpen(false)}
+            >
               Start Free <ArrowRight size={14} />
             </Link>
           </div>

@@ -64,7 +64,7 @@ export default function ElectricitySection({
               <button
                 type="button"
                 onClick={() => onRemove(meter.id)}
-                className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
+                className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors border border-border"
                 title="Remove meter"
               >
                 ×

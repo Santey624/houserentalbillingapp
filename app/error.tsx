@@ -17,7 +17,7 @@ export default function GlobalError({ error, reset }: Props) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-6">
       <div className="text-center max-w-md">
-        <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-5">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mx-auto mb-5">
           <AlertTriangle size={28} className="text-amber-500" />
         </div>
         <h2 className="text-3xl text-foreground mb-2">Something went wrong</h2>

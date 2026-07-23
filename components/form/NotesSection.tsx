@@ -26,7 +26,7 @@ export default function NotesSection({ notes, onAdd, onRemove, onUpdate }: Props
           <button
             type="button"
             onClick={() => onRemove(i)}
-            className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border mt-1"
+            className="flex items-center justify-center w-9 h-9 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors border border-border mt-1"
             title="Remove note"
           >
             ×

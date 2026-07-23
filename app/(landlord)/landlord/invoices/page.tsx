@@ -47,7 +47,7 @@ export default async function InvoicesPage(props: {
               href={s ? `/landlord/invoices?status=${s}` : '/landlord/invoices'}
               className={`px-4 py-1.5 text-xs font-medium rounded-full border transition-all duration-150 ${
                 isActive
-                  ? 'gradient-bg text-white border-transparent shadow-sm'
+                  ? 'gradient-bg text-accent-foreground border-transparent shadow-sm'
                   : 'bg-card text-muted-foreground border-border hover:border-accent/40 hover:text-foreground'
               }`}
             >

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Play } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 export default function HeroSection() {
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -11,7 +11,6 @@ export default function HeroSection() {
     const video = videoRef.current
     if (!video) return
 
-    // Play at native 1x — slow-mo is baked into the encoded file for smooth playback.
     const tryPlay = () => {
       video.playbackRate = 1
       video.play().catch(() => {})
@@ -23,12 +22,11 @@ export default function HeroSection() {
   }, [])
 
   return (
-    <section className="relative isolate min-h-[100svh] overflow-hidden bg-[#0A0F1E]">
-      {/* Crop wrapper + corner mask hide any residual watermark */}
+    <section className="relative isolate min-h-[100svh] overflow-hidden bg-[#09090b]">
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <video
           ref={videoRef}
-          className="absolute left-1/2 top-1/2 h-[112%] w-[112%] max-w-none -translate-x-[46%] -translate-y-[44%] object-cover"
+          className="absolute left-1/2 top-1/2 h-[115%] w-[115%] max-w-none -translate-x-[48%] -translate-y-[46%] object-cover"
           autoPlay
           muted
           loop
@@ -38,85 +36,61 @@ export default function HeroSection() {
         >
           <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
-        <div className="absolute bottom-0 right-0 h-24 w-40 bg-gradient-to-tl from-[#0A0F1E] via-[#0A0F1E]/80 to-transparent" />
       </div>
 
-      {/* Soft readability overlays — keep video visible */}
-      <div className="absolute inset-0 bg-[#0A0F1E]/55 sm:bg-[#0A0F1E]/45" aria-hidden="true" />
+      {/* Dark vignette for contrast — video remains the visual plane */}
       <div
-        className="absolute inset-0 bg-gradient-to-r from-[#0A0F1E]/80 via-[#0A0F1E]/35 to-transparent"
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 85% 70% at 55% 40%, transparent 0%, rgba(9,9,11,0.45) 55%, rgba(9,9,11,0.88) 100%)',
+        }}
         aria-hidden="true"
       />
       <div
-        className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent"
+        className="absolute inset-0 bg-gradient-to-r from-[#09090b]/90 via-[#09090b]/55 to-[#09090b]/25"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#09090b] via-[#09090b]/70 to-transparent"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#09090b]/60 to-transparent"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-5 pb-20 pt-28 sm:px-8 lg:pb-24">
+      <div className="relative z-10 mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:justify-center sm:px-8 sm:pb-24 lg:pb-28">
         <div className="max-w-xl">
-          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#5B8CFF] animate-fade-in-up">
-            Property Management
+          <p className="landing-serif mb-4 text-4xl tracking-tight text-white sm:text-5xl lg:text-[3.75rem] animate-fade-in-up">
+            GharKatha
           </p>
 
-          <h1 className="mb-6 font-heading text-[2.5rem] leading-[1.12] tracking-tight text-white sm:text-5xl lg:text-[3.5rem] animate-fade-in-up-1">
-            Built for Modern{' '}
-            <span className="text-[#4D7CFF]">Nepal</span>.
+          <h1 className="mb-5 text-xl font-normal leading-snug tracking-tight text-white/90 sm:text-2xl lg:text-[1.75rem] animate-fade-in-up-1">
+            Quiet control for serious property portfolios.
           </h1>
 
-          <p className="mb-9 max-w-md text-base leading-relaxed text-white/75 sm:text-lg animate-fade-in-up-2">
-            Manage tenants, collect rent, generate Nepali-calendar invoices, track maintenance, and
-            grow your properties—all from one intelligent platform.
+          <p className="mb-9 max-w-md text-[15px] leading-relaxed text-zinc-400 sm:text-base animate-fade-in-up-2">
+            Nepali-calendar invoices, rent collection, and maintenance—one refined workspace for
+            landlords who expect clarity.
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center animate-fade-in-up-3">
-            <Link href="/auth/signup" className="btn-primary h-12 px-7 text-sm">
+            <Link href="/auth/signup" className="landing-btn-primary">
               Start Free <ArrowRight size={15} />
             </Link>
-            <Link
-              href="#how-it-works"
-              className="inline-flex h-12 items-center justify-center gap-2.5 rounded-xl border border-white/30 bg-white/5 px-6 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/10"
-            >
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-                <Play size={10} fill="currentColor" />
-              </span>
-              Book Demo
+            <Link href="#how-it-works" className="landing-btn-ghost">
+              See how it works
             </Link>
           </div>
 
-          <div className="mt-10 flex flex-wrap items-center gap-4 animate-fade-in-up-4">
-            <div className="flex -space-x-2.5" aria-hidden="true">
-              {['#1E3A8A', '#0F766E', '#9A3412', '#6D28D9'].map((color, i) => (
-                <span
-                  key={color}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#0A0F1E] text-[10px] font-semibold text-white"
-                  style={{ backgroundColor: color, zIndex: 4 - i }}
-                >
-                  {['RK', 'SP', 'AM', 'NT'][i]}
-                </span>
-              ))}
-            </div>
-            <div>
-              <div className="mb-0.5 flex gap-0.5 text-amber-400" aria-label="5 out of 5 stars">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <svg key={i} viewBox="0 0 20 20" className="h-3.5 w-3.5 fill-current" aria-hidden="true">
-                    <path d="M10 1.5l2.35 4.76 5.25.76-3.8 3.7.9 5.24L10 13.77l-4.7 2.47.9-5.24-3.8-3.7 5.25-.76L10 1.5z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-sm text-white/60">Trusted by landlords across Nepal</p>
-            </div>
+          <div className="mt-10 flex items-center gap-3 border-t border-white/10 pt-6 animate-fade-in-up-4">
+            <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#c9a96e]">
+              Trusted in Nepal
+            </span>
+            <span className="h-px flex-1 max-w-16 bg-white/15" aria-hidden="true" />
+            <p className="text-sm text-zinc-500">Landlords · Managers · Families</p>
           </div>
-
-          <p className="mt-6 text-sm text-white/45">
-            Prefer a role-specific start?{' '}
-            <Link href="/auth/signup?role=LANDLORD" className="text-white/80 underline-offset-2 hover:underline">
-              Landlord
-            </Link>
-            {' · '}
-            <Link href="/auth/signup?role=TENANT" className="text-white/80 underline-offset-2 hover:underline">
-              Tenant
-            </Link>
-          </p>
         </div>
       </div>
     </section>

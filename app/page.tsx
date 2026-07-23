@@ -69,7 +69,7 @@ export default async function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="landing-root min-h-screen">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}

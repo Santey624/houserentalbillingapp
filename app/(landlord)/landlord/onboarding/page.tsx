@@ -33,7 +33,7 @@ export default function OnboardingPage() {
             <div key={s} className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all ${
                 i < step
-                  ? 'gradient-bg text-white'
+                  ? 'gradient-bg text-accent-foreground'
                   : i === step
                     ? 'bg-foreground text-background'
                     : 'bg-muted text-muted-foreground'
