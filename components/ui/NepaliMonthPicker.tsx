@@ -23,7 +23,7 @@ export default function NepaliMonthPicker({
               onClick={() => onToggle(i)}
               className={`text-xs px-2 py-1.5 rounded-lg border transition-colors ${
                 isSelected
-                  ? "gradient-bg text-white border-transparent"
+                  ? "gradient-bg text-accent-foreground border-transparent"
                   : "bg-card text-foreground border-border hover:border-accent/40"
               }`}
             >

@@ -15,6 +15,7 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   transpilePackages: ['@react-pdf/renderer'],
   async headers() {
     const securityHeaders = [

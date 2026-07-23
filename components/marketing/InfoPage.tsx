@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2 } from 'lucide-react'
-import { Logo, LogoDark } from '@/components/shared/Logo'
+import { LogoDark } from '@/components/shared/Logo'
 
 type ContentSection = {
   title: string
@@ -40,7 +40,7 @@ export function InfoPage({
       <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-5 px-5 py-4 sm:px-8">
           <Link href="/" aria-label="GharKatha home">
-            <Logo height={48} />
+            <LogoDark height={48} />
           </Link>
           <nav aria-label="Main navigation" className="hidden items-center gap-1 lg:flex">
             {publicLinks.map((link) => (
@@ -125,9 +125,9 @@ export function InfoPage({
             </div>
           </section>
 
-          <section className="bg-foreground px-5 py-20 text-center sm:px-8">
+          <section className="bg-[#050506] px-5 py-20 text-center sm:px-8 border-t border-border">
             <h2 className="mb-4 text-3xl text-white">Ready to manage rent with less effort?</h2>
-            <p className="mx-auto mb-8 max-w-2xl text-white/60">
+            <p className="mx-auto mb-8 max-w-2xl text-zinc-400">
               Create your GharKatha account and bring property, invoice, payment, and maintenance
               records into one organized platform.
             </p>
@@ -138,12 +138,12 @@ export function InfoPage({
         </article>
       </main>
 
-      <footer className="bg-foreground px-5 py-10 sm:px-8">
+      <footer className="bg-[#050506] px-5 py-10 sm:px-8 border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <LogoDark showTagline />
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             {publicLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="text-sm text-white/50 hover:text-white/80">
+              <Link key={link.href} href={link.href} className="text-sm text-zinc-500 hover:text-zinc-300">
                 {link.label}
               </Link>
             ))}

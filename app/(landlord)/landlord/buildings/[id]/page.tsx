@@ -46,8 +46,8 @@ export default async function BuildingDetailPage(props: {
         </div>
         <span className={`text-xs px-3 py-1 rounded-full font-medium border ${
           building.isOpen
-            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-            : 'bg-slate-100 text-slate-500 border-slate-200'
+            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+            : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/25'
         }`}>
           {building.isOpen ? 'Open' : 'Closed'}
         </span>
@@ -91,8 +91,8 @@ export default async function BuildingDetailPage(props: {
                     <span className="font-semibold text-foreground group-hover:text-accent transition-colors">Unit {unit.unitNumber}</span>
                     <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${
                       activeTenancy
-                        ? 'bg-blue-50 text-blue-700 border-blue-200'
-                        : 'bg-slate-100 text-slate-500 border-slate-200'
+                        ? 'bg-accent/10 text-accent border-accent/25'
+                        : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/25'
                     }`}>
                       {activeTenancy ? 'Occupied' : 'Vacant'}
                     </span>

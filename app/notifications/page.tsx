@@ -32,7 +32,7 @@ export default async function NotificationsPage() {
           <h1 className="text-4xl text-foreground mb-1">
             Notifications
             {unreadCount > 0 && (
-              <span className="ml-3 inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full text-xs font-semibold gradient-bg text-white">
+              <span className="ml-3 inline-flex items-center justify-center h-6 min-w-6 px-2 rounded-full text-xs font-semibold gradient-bg text-accent-foreground">
                 {unreadCount}
               </span>
             )}

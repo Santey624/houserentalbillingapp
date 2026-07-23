@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
-/** Wordmark aspect ratio from brand asset (2172×724). */
-const LOGO_ASPECT = 2172 / 724
+/** Wordmark aspect ratio from brand asset (1200×400). */
+const LOGO_ASPECT = 1200 / 400
 
 export function Logo({ height = 32, className }: { height?: number; className?: string }) {
   return (
@@ -16,14 +16,23 @@ export function Logo({ height = 32, className }: { height?: number; className?: 
   )
 }
 
-export function LogoDark({ showTagline = false }: { showTagline?: boolean }) {
-  const height = showTagline ? 52 : 40
+export function LogoDark({
+  height,
+  showTagline = false,
+  className,
+}: {
+  height?: number
+  showTagline?: boolean
+  className?: string
+}) {
+  const resolvedHeight = height ?? (showTagline ? 52 : 40)
   return (
     <Image
       src="/gharkatha-logo-light.png"
       alt={showTagline ? 'GharKatha Smart Rent Management' : 'GharKatha'}
-      width={Math.round(height * LOGO_ASPECT)}
-      height={height}
+      width={Math.round(resolvedHeight * LOGO_ASPECT)}
+      height={resolvedHeight}
+      className={className}
       priority
     />
   )

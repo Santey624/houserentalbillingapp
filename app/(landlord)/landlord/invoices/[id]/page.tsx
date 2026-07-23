@@ -167,7 +167,7 @@ export default async function LandlordInvoiceDetailPage(props: {
 
       {/* Payment verification */}
       {pendingPayment && (
-        <div className="card-modern p-6 mb-6 border-accent/30" style={{ background: 'rgba(0,82,255,0.02)' }}>
+        <div className="card-modern p-6 mb-6 border-accent/30 bg-accent/[0.06]">
           <h3 className="font-semibold text-foreground mb-4">Payment Proof Submitted</h3>
           <div className="text-sm text-muted-foreground space-y-1.5 mb-5">
             <p>Method: <span className="font-medium text-foreground">{pendingPayment.method.replace('_', ' ')}</span></p>

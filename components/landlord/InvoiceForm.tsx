@@ -279,7 +279,7 @@ export default function InvoiceForm({
 
       {!initialData && hasPresetSelection && (
         <div className="card-modern flex items-center gap-3 p-5">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-accent">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
             <User size={17} />
           </div>
           <div className="min-w-0">
@@ -418,7 +418,7 @@ export default function InvoiceForm({
             <button
               type="button"
               onClick={() => removeMeter(m.id)}
-              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
+              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors border border-border"
             >
               <Trash2 size={14} />
             </button>
@@ -460,7 +460,7 @@ export default function InvoiceForm({
             <button
               type="button"
               onClick={() => removeCost(c.id)}
-              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-50 transition-colors border border-border"
+              className="flex items-center justify-center h-11 rounded-lg text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors border border-border"
             >
               <Trash2 size={14} />
             </button>

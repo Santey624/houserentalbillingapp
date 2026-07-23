@@ -51,8 +51,8 @@ export default async function BuildingsPage() {
                 </div>
                 <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
                   b.isOpen
-                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                    : 'bg-slate-100 text-slate-500 border border-slate-200'
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/25'
+                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/25'
                 }`}>
                   {b.isOpen ? 'Open' : 'Closed'}
                 </span>

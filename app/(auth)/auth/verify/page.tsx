@@ -27,7 +27,7 @@ export default async function VerifyPage(props: {
   if (!token) {
     return (
       <div className="text-center">
-        <div className="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-5">
+        <div className="w-14 h-14 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-5">
           <XCircle size={24} className="text-red-500" />
         </div>
         <h1 className="text-xl text-foreground mb-2">Invalid link</h1>
@@ -43,9 +43,9 @@ export default async function VerifyPage(props: {
 
   return (
     <div className="text-center">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 ${result.success ? 'bg-emerald-50' : 'bg-red-50'}`}>
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 ${result.success ? 'bg-emerald-500/10' : 'bg-red-500/10'}`}>
         {result.success
-          ? <CheckCircle2 size={24} className="text-emerald-600" />
+          ? <CheckCircle2 size={24} className="text-emerald-300" />
           : <XCircle size={24} className="text-red-500" />
         }
       </div>
