@@ -16,14 +16,23 @@ export function Logo({ height = 32, className }: { height?: number; className?: 
   )
 }
 
-export function LogoDark({ showTagline = false }: { showTagline?: boolean }) {
-  const height = showTagline ? 52 : 40
+export function LogoDark({
+  showTagline = false,
+  height: heightProp,
+  className,
+}: {
+  showTagline?: boolean
+  height?: number
+  className?: string
+}) {
+  const height = heightProp ?? (showTagline ? 52 : 40)
   return (
     <Image
       src="/gharkatha-logo-light.png"
       alt={showTagline ? 'GharKatha Smart Rent Management' : 'GharKatha'}
       width={Math.round(height * LOGO_ASPECT)}
       height={height}
+      className={className}
       priority
     />
   )
