@@ -56,6 +56,7 @@ export interface InvoiceData {
     floor?: string | null;
     dueDate?: string | null;
     status?: string;
+    logoDataUrl?: string | null;
   };
   meters: ComputedMeter[];
   totalUnits: number;

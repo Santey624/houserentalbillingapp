@@ -4,7 +4,7 @@ import { useState } from "react";
 import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "@/components/pdf/InvoicePDF";
 import { sanitizeFilename } from "@/lib/invoiceNumber";
-import { downloadBlob } from "@/lib/downloadBlob";
+import { downloadBlob, imageToDataUrl } from "@/lib/downloadBlob";
 import type { InvoiceData } from "@/lib/invoiceTypes";
 
 interface LineItem {
@@ -56,6 +56,11 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
     try {
       setLoading(true);
 
+      const [logoDataUrl, qrDataUrl] = await Promise.all([
+        imageToDataUrl("/gharkatha-logo.png"),
+        imageToDataUrl(landlord.qrImageUrl),
+      ]);
+
       const meters = invoice.lineItems
         .filter((li) => li.meterReading !== null)
         .map((li) => ({
@@ -92,7 +97,7 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
           electricityRate: landlord.electricityRate,
           paymentDueDay: landlord.paymentDueDay,
           bankDetails: landlord.bankDetails,
-          qrImageUrl: landlord.qrImageUrl,
+          qrImageUrl: qrDataUrl,
         },
         invoice: {
           tenantName: invoice.tenantName,
@@ -112,6 +117,7 @@ export default function DownloadInvoiceButton({ invoice, landlord }: Props) {
           floor: invoice.unit.floor,
           dueDate: invoice.dueDate,
           status: invoice.status,
+          logoDataUrl,
         },
         meters,
         totalUnits: meters.reduce((sum, m) => sum + m.consumed, 0),

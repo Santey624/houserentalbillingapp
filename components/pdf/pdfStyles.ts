@@ -14,7 +14,7 @@ export const COLORS = {
 
 export const styles = StyleSheet.create({
   page: {
-    fontFamily: "DM Sans",
+    fontFamily: "Helvetica",
     fontSize: 9.5,
     color: COLORS.INK,
     backgroundColor: COLORS.WHITE,

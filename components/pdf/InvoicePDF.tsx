@@ -4,27 +4,8 @@ import { countBillingMonths } from "@/lib/nepaliMonths";
 import { pdfAssetUrl } from "@/lib/downloadBlob";
 import { styles } from "./pdfStyles";
 
-function registerPdfFonts() {
-  const playfair = [
-    { src: pdfAssetUrl("/fonts/playfair-display-latin-400-normal.woff") },
-    { src: pdfAssetUrl("/fonts/playfair-display-latin-700-normal.woff"), fontWeight: 700 as const },
-    { src: pdfAssetUrl("/fonts/playfair-display-latin-400-italic.woff"), fontStyle: "italic" as const },
-  ];
-  const dmSans = [
-    { src: pdfAssetUrl("/fonts/dm-sans-latin-400-normal.woff") },
-    { src: pdfAssetUrl("/fonts/dm-sans-latin-700-normal.woff"), fontWeight: 700 as const },
-    { src: pdfAssetUrl("/fonts/dm-sans-latin-400-normal.woff"), fontStyle: "italic" as const },
-  ];
-
-  Font.register({ family: "Playfair Display", fonts: playfair });
-  Font.register({ family: "DM Sans", fonts: dmSans });
-}
-
-// Register once in the browser; pdf() only runs client-side.
-if (typeof window !== "undefined") {
-  registerPdfFonts();
-}
-
+// Custom WOFF fonts break @react-pdf in the browser ("Unknown font format").
+// Use built-in Helvetica via pdfStyles; keep hyphenation disabled.
 Font.registerHyphenationCallback((word) => [word]);
 
 interface Props {
@@ -132,12 +113,14 @@ export default function InvoicePDF({ data }: Props) {
   const floorLabel = meta?.floor ? `Floor ${meta.floor}` : "";
   const bankLines = paymentDetailLines(landlord.bankDetails);
 
-  // Use a simpler check for the QR image
+  // Prefer data URLs prepared by the download button; fall back to absolute URLs.
   const qrImage =
     landlord.qrImageUrl && landlord.qrImageUrl.length > 10
-      ? pdfAssetUrl(landlord.qrImageUrl)
+      ? landlord.qrImageUrl.startsWith("data:")
+        ? landlord.qrImageUrl
+        : pdfAssetUrl(landlord.qrImageUrl)
       : null;
-  const logoSrc = pdfAssetUrl("/gharkatha-logo.png");
+  const logoSrc = meta?.logoDataUrl || null;
   const hasPaymentMethods = bankLines.length > 0 || Boolean(qrImage);
 
 
@@ -146,9 +129,13 @@ export default function InvoicePDF({ data }: Props) {
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
           <View style={styles.brandBlock}>
-            <View style={{ width: 120 }}>
-              <Image src={logoSrc} style={styles.logo} />
-            </View>
+            {logoSrc ? (
+              <View style={{ width: 120 }}>
+                <Image src={logoSrc} style={styles.logo} />
+              </View>
+            ) : (
+              <Text style={styles.brandFallback}>GharKatha</Text>
+            )}
             <Text style={styles.brandTagline}>Rental billing and property management</Text>
           </View>
           <View style={styles.headerRight}>

@@ -22,3 +22,23 @@ export function pdfAssetUrl(path: string): string {
   if (typeof window === 'undefined') return normalized
   return `${window.location.origin}${normalized}`
 }
+
+/** Fetch an image and return a data URL so react-pdf does not fail on relative/CORS URLs. */
+export async function imageToDataUrl(path: string | null | undefined): Promise<string | null> {
+  if (!path || path.length < 4) return null
+  if (path.startsWith('data:')) return path
+
+  try {
+    const res = await fetch(pdfAssetUrl(path))
+    if (!res.ok) return null
+    const blob = await res.blob()
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(typeof reader.result === 'string' ? reader.result : null)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(blob)
+    })
+  } catch {
+    return null
+  }
+}

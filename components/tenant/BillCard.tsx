@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { pdf } from '@react-pdf/renderer'
 import InvoicePDF from '@/components/pdf/InvoicePDF'
 import type { InvoiceData } from '@/lib/invoiceTypes'
-import { downloadBlob } from '@/lib/downloadBlob'
+import { downloadBlob, imageToDataUrl } from '@/lib/downloadBlob'
 import { Download } from 'lucide-react'
 
 interface Props {
@@ -18,7 +18,19 @@ export default function BillCard({ data, filename }: Props) {
   async function handleDownload() {
     try {
       setLoading(true)
-      const blob = await pdf(<InvoicePDF data={data} />).toBlob()
+      const [logoDataUrl, qrDataUrl] = await Promise.all([
+        imageToDataUrl('/gharkatha-logo.png'),
+        imageToDataUrl(data.landlord.qrImageUrl),
+      ])
+      const blob = await pdf(
+        <InvoicePDF
+          data={{
+            ...data,
+            landlord: { ...data.landlord, qrImageUrl: qrDataUrl },
+            meta: { ...data.meta, logoDataUrl },
+          }}
+        />
+      ).toBlob()
       downloadBlob(blob, `${filename}.pdf`)
     } catch (error) {
       console.error('Failed to generate PDF:', error)

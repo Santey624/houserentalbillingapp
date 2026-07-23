@@ -5,7 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import InvoicePDF from "@/components/pdf/InvoicePDF";
 import { InvoiceData } from "@/lib/invoiceTypes";
 import { sanitizeFilename } from "@/lib/invoiceNumber";
-import { downloadBlob } from "@/lib/downloadBlob";
+import { downloadBlob, imageToDataUrl } from "@/lib/downloadBlob";
 
 interface Props {
   onBeforeGenerate: () => InvoiceData | null; // returns null if validation fails
@@ -20,7 +20,19 @@ export default function GenerateButton({ onBeforeGenerate }: Props) {
 
     try {
       setLoading(true);
-      const blob = await pdf(<InvoicePDF data={data} />).toBlob();
+      const [logoDataUrl, qrDataUrl] = await Promise.all([
+        imageToDataUrl("/gharkatha-logo.png"),
+        imageToDataUrl(data.landlord.qrImageUrl),
+      ]);
+      const blob = await pdf(
+        <InvoicePDF
+          data={{
+            ...data,
+            landlord: { ...data.landlord, qrImageUrl: qrDataUrl },
+            meta: { ...data.meta, logoDataUrl },
+          }}
+        />
+      ).toBlob();
       const ts = new Date()
         .toISOString()
         .replace(/[-:T]/g, "")
